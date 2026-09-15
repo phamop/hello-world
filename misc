@@ -1,3 +1,41 @@
+
+ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -A -o wide '                 master01 | CHANGED | rc=0 >>
+NAMESPACE     NAME                                                   READY   STATUS      RESTARTS      AGE   IP              NODE       NOMINATED NODE   READINESS GATES
+kube-system   cloud-controller-manager-master01                      1/1     Running     1 (61m ago)   61m   10.174.161.22   master01   <none>           <none>
+kube-system   cloud-controller-manager-master02                      1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
+kube-system   cloud-controller-manager-master03                      1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
+kube-system   etcd-master01                                          1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
+kube-system   etcd-master02                                          1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
+kube-system   etcd-master03                                          1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
+kube-system   helm-install-rke2-coredns-jksdl                        0/1     Completed   0             61m   10.174.161.22   master01   <none>           <none>
+kube-system   helm-install-rke2-ingress-nginx-l7lmn                  0/1     Pending     0             61m   <none>          <none>     <none>           <none>
+kube-system   helm-install-rke2-metrics-server-85drv                 0/1     Pending     0             61m   <none>          <none>     <none>           <none>
+kube-system   helm-install-rke2-runtimeclasses-x96h7                 0/1     Pending     0             61m   <none>          <none>     <none>           <none>
+kube-system   helm-install-rke2-snapshot-controller-crd-2v8cl        0/1     Pending     0             61m   <none>          <none>     <none>           <none>
+kube-system   helm-install-rke2-snapshot-controller-ztz8k            0/1     Pending     0             61m   <none>          <none>     <none>           <none>
+kube-system   kube-apiserver-master01                                1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
+kube-system   kube-apiserver-master02                                1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
+kube-system   kube-apiserver-master03                                1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
+kube-system   kube-controller-manager-master01                       1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
+kube-system   kube-controller-manager-master02                       1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
+kube-system   kube-controller-manager-master03                       1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
+kube-system   kube-proxy-master01                                    1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
+kube-system   kube-proxy-master02                                    1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
+kube-system   kube-proxy-master03                                    1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
+kube-system   kube-scheduler-master01                                1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
+kube-system   kube-scheduler-master02                                1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
+kube-system   kube-scheduler-master03                                1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
+kube-system   rke2-coredns-rke2-coredns-78c46898db-jd6xm             0/1     Pending     0             61m   <none>          <none>     <none>           <none>
+kube-system   rke2-coredns-rke2-coredns-autoscaler-f85f87746-5swrz   0/1     Pending     0             61m   <none>          <none>     <none>           <none>
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes '
+master01 | CHANGED | rc=0 >>
+NAME       STATUS     ROLES                AGE   VERSION
+master01   NotReady   control-plane,etcd   62m   v1.35.3+rke2r1
+master02   NotReady   control-plane,etcd   21m   v1.35.3+rke2r1
+master03   NotReady   control-plane,etcd   21m   v1.35.3+rke2r1
+
+
+
 ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key   endpoint health -w table
 +----------------------------+--------+------------+-------+
 |          ENDPOINT          | HEALTH |    TOOK    | ERROR |
