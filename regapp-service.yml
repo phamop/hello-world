@@ -16,11 +16,144 @@ spec:
 
 
 ---
-TASK [lablabs.rke2 : Run RKE2 install script with airgap variables] ***********************************************************************
-fatal: [master01]: FAILED! => {"changed": false, "cmd": "/var/tmp/rke2.sh", "msg": "[Errno 2] No such file or directory: b'/var/tmp/rke2.sh                              '", "rc": 2, "stderr": "", "stderr_lines": [], "stdout": "", "stdout_lines": []}
+The failure is coming from **trailing whitespace in the script path**. Ansible is trying to execute:
 
-PLAY RECAP ********************************************************************************************************************************
-master01                   : ok=12   changed=3    unreachable=0    failed=1    skipped=14   rescued=0    ignored=0
+```text
+/var/tmp/rke2.sh                              
+```
 
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+instead of:
+
+```text
+/var/tmp/rke2.sh
+```
+
+That is why Python reports:
+
+```text
+[Errno 2] No such file or directory
+```
+
+even though `/var/tmp/rke2.sh` may actually exist.
+
+Check the file first:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.yml \
+  -b \
+  -m shell \
+  -a 'ls -l /var/tmp/rke2.sh; file /var/tmp/rke2.sh'
+```
+
+Then find where the variable is defined:
+
+```bash
+grep -Rni "rke2.sh" .
+```
+
+Also search specifically for suspicious whitespace:
+
+```bash
+grep -RniE 'rke2\.sh[[:space:]]+$' .
+```
+
+You likely have something similar to:
+
+```yaml
+rke2_install_script: "/var/tmp/rke2.sh                              "
+```
+
+or:
+
+```yaml
+rke2_install_script: /var/tmp/rke2.sh                              
+```
+
+Change it to exactly:
+
+```yaml
+rke2_install_script: "/var/tmp/rke2.sh"
+```
+
+There should be **no spaces after `rke2.sh` inside the value**.
+
+To make this obvious, inspect your variables with visible whitespace:
+
+```bash
+grep -Rni "rke2.sh" inventory roles playbooks | cat -A
+```
+
+Bad output would look like:
+
+```text
+rke2_install_script: "/var/tmp/rke2.sh                              "$
+```
+
+Correct:
+
+```text
+rke2_install_script: "/var/tmp/rke2.sh"$
+```
+
+You can also inspect what Ansible believes the variable is:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.yml \
+  -m debug \
+  -a 'var=rke2_install_script'
+```
+
+If that variable name is different in your implementation, inspect all RKE2-related host variables:
+
+```bash
+ansible-inventory \
+  -i inventory/dev/hosts.yml \
+  --host master01 | grep -i -A2 -B2 rke2
+```
+
+One additional safeguard is to apply `trim` where the role executes the path. If your custom task currently looks like:
+
+```yaml
+- name: Run RKE2 install script with airgap variables
+  ansible.builtin.command: "{{ rke2_install_script }}"
+```
+
+use:
+
+```yaml
+- name: Run RKE2 install script with airgap variables
+  ansible.builtin.command:
+    cmd: "{{ rke2_install_script | trim }}"
+```
+
+But I would still fix the actual variable rather than relying only on `trim`.
+
+Once fixed, verify directly:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.yml \
+  -b \
+  -m shell \
+  -a 'ls -lb /var/tmp/rke2.sh'
+```
+
+Then rerun:
+
+```bash
+ansible-playbook \
+  -i inventory/dev/hosts.yml \
+  your-rke2-playbook.yml
+```
+
+The key clue is already in the error itself:
+
+```text
+b'/var/tmp/rke2.sh                              '
+```
+
+Those trailing spaces are part of the filename Ansible is trying to execute. Linux is being painfully literal here.
+
 
