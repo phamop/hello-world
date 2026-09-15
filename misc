@@ -81,3 +81,270 @@ then you should normally disable kube-proxy in the RKE2 config before Cilium dep
 If instead your Cilium deployment is configured with kube-proxy replacement disabled, then the current state is fine.
 
 That is the one setting I would verify before executing the Cilium playbook.
+
+
+
+
+
+
+
+Yes — if it is sitting for a long time specifically at:
+
+```text
+TASK [lablabs.rke2 : Download kubeconfig to ansible localhost]
+```
+
+then I would stop treating it as an RKE2 cluster problem. Your control plane is already running; this task is about copying `/etc/rancher/rke2/rke2.yaml` from a server back to the Ansible controller/jump host.
+
+First, in another terminal, confirm whether Ansible is actually creating anything locally:
+
+```bash
+find . -type f \( -name 'rke2.yaml' -o -name '*kubeconfig*' \) -ls
+```
+
+Then inspect exactly what that task does:
+
+```bash
+grep -Rni -A20 -B10 \
+  "Download kubeconfig to ansible localhost" \
+  roles/lablabs.rke2
+```
+
+I strongly suspect you will see either `fetch:`, `slurp:`, or a delegated localhost operation.
+
+The most useful immediate check is:
+
+```bash
+sed -n '1,220p' \
+  roles/lablabs.rke2/tasks/download_kubeconfig.yaml
+```
+
+or, if the filename is `.yml`:
+
+```bash
+sed -n '1,220p' \
+  roles/lablabs.rke2/tasks/download_kubeconfig.yml
+```
+
+From your earlier role listing, I noticed you have:
+
+```text
+roles/lablabs.rke2/tasks/download_kubeconfig.yaml
+```
+
+so use that first.
+
+### If it uses `fetch`
+
+A clean implementation should look approximately like:
+
+```yaml
+- name: Download kubeconfig to ansible localhost
+  ansible.builtin.fetch:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: "{{ playbook_dir }}/../kubeconfig/"
+    flat: true
+  run_once: true
+```
+
+There should normally be **no `delegate_to: localhost` required for `fetch`**. `fetch` already transfers from the remote managed node to the Ansible controller.
+
+If the role has something strange like:
+
+```yaml
+delegate_to: localhost
+become: true
+```
+
+on the fetch/copy operation, that can cause trouble — especially if your controller sudo configuration is waiting for interaction.
+
+### Check whether localhost sudo is the hang
+
+On your Ansible controller:
+
+```bash
+sudo -n true
+echo $?
+```
+
+If the result is:
+
+```text
+0
+```
+
+sudo is non-interactive.
+
+If it returns something like:
+
+```text
+sudo: a password is required
+```
+
+and the kubeconfig task is delegated to localhost with:
+
+```yaml
+become: true
+```
+
+then that is likely your hang.
+
+For a local destination under your project directory, you should normally **not use become on localhost**.
+
+For example:
+
+```yaml
+- name: Download kubeconfig to Ansible controller
+  ansible.builtin.fetch:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: "{{ playbook_dir }}/../kubeconfig/rke2.yaml"
+    flat: true
+  run_once: true
+  become: true
+```
+
+Here `become: true` applies to reading the **remote** `/etc/rancher/rke2/rke2.yaml`, which is fine.
+
+Do not then wrap it with:
+
+```yaml
+delegate_to: localhost
+```
+
+because that changes where the module executes.
+
+### Verify the source itself is immediately readable
+
+You already know it exists, but confirm:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m stat \
+  -a 'path=/etc/rancher/rke2/rke2.yaml'
+```
+
+Then:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'wc -c /etc/rancher/rke2/rke2.yaml'
+```
+
+This file should only be a few KB. There is absolutely no legitimate reason for transferring it to take minutes.
+
+### Test `fetch` manually
+
+This is the cleanest way to prove whether Ansible transport works:
+
+```bash
+mkdir -p kubeconfig
+```
+
+Then:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m fetch \
+  -a 'src=/etc/rancher/rke2/rke2.yaml dest=./kubeconfig/rke2.yaml flat=yes'
+```
+
+Then:
+
+```bash
+ls -lh kubeconfig/rke2.yaml
+```
+
+and:
+
+```bash
+head kubeconfig/rke2.yaml
+```
+
+If that completes immediately, the role's kubeconfig task needs fixing — not SSH, RKE2, or the cluster.
+
+### One important kubeconfig issue afterward
+
+The downloaded kubeconfig often contains:
+
+```yaml
+server: https://127.0.0.1:6443
+```
+
+That works **on `master01`**, but not from your jump/Ansible controller.
+
+After fetching it, you need the server field to point to a reachable control-plane address or preferably your future HA endpoint.
+
+For now that could be:
+
+```yaml
+server: https://10.174.161.22:6443
+```
+
+Eventually, for HA, I would prefer:
+
+```yaml
+server: https://<RKE2-MGMT-VIP>:6443
+```
+
+and that VIP/DNS name should also be in the RKE2 `tls-san`.
+
+A good Ansible pattern is:
+
+```yaml
+- name: Download kubeconfig to Ansible controller
+  ansible.builtin.fetch:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: "{{ playbook_dir }}/../kubeconfig/rke2.yaml"
+    flat: true
+  run_once: true
+  when: inventory_hostname == groups['masters'][0]
+
+- name: Replace localhost API endpoint in downloaded kubeconfig
+  ansible.builtin.replace:
+    path: "{{ playbook_dir }}/../kubeconfig/rke2.yaml"
+    regexp: 'https://127\.0\.0\.1:6443'
+    replace: 'https://10.174.161.22:6443'
+  delegate_to: localhost
+  become: false
+  run_once: true
+```
+
+The distinction is important:
+
+```text
+fetch kubeconfig:
+remote master → controller
+become: yes
+
+edit downloaded kubeconfig:
+controller → controller
+delegate_to: localhost
+become: no
+```
+
+For now, run this manual test:
+
+```bash
+mkdir -p kubeconfig
+
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m fetch \
+  -a 'src=/etc/rancher/rke2/rke2.yaml dest=./kubeconfig/rke2.yaml flat=yes'
+```
+
+If that finishes quickly, paste the contents of:
+
+```bash
+cat roles/lablabs.rke2/tasks/download_kubeconfig.yaml
+```
+
+and I can pinpoint the exact line causing the role to hang.
