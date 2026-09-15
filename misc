@@ -1,201 +1,382 @@
-You are past the original `/var/tmp/rke2.sh` problem. The new issue is now the cluster bootstrap itself, and there are **two separate problems**.
+We have the root cause now. This is **not an RKE2 problem yet**; it is node-to-node networking.
 
-First, `master01` is actually healthy at the RKE2 control-plane level. Its API server, etcd, scheduler, controller-manager, kube-proxy, and containerd are running, and `/readyz` passes. 
-
-The reason `master01` is `NotReady` is very clear:
+Both `master02` and `master03` are trying to join:
 
 ```text
-NetworkPluginNotReady
-cni plugin not initialized
+https://10.174.161.22:9345
 ```
 
-Your generated RKE2 config explicitly contains:
-
-```yaml
-cni: none
-```
-
-
-
-That matches your intended design if you plan to install **Cilium separately after RKE2**. So this part is expected. Until Cilium is installed, Kubernetes will report:
+and both receive:
 
 ```text
-Ready=False
+No route to host
 ```
 
-and pods such as CoreDNS, metrics-server, ingress-nginx, and the Helm installer jobs will remain Pending. 
+for `9345`, `6443`, `2379`, and `2380`. 
 
-The bigger issue right now is `master02` and `master03`. Both `rke2-server` services are crashing with exit code 1. 
+RKE2 then fails while attempting to retrieve `/cacerts` from `master01`, so it never gets far enough to validate the cluster token. 
 
-So I would **not install Cilium yet**. First make all three control-plane nodes successfully join the RKE2 cluster.
+There is also a second issue visible in the generated config: all three nodes show an empty `token:` value.  We should fix networking first, then confirm whether that token is truly blank or was intentionally sanitized in your output.
 
-Run these diagnostics next.
+### 1. Stop the restart storm
+
+`master02` and `master03` have already restarted hundreds of times. Stop them while troubleshooting:
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m systemd \
+  -a 'name=rke2-server state=stopped'
+```
+
+Confirm:
 
 ```bash
 ansible 'master02:master03' \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'journalctl -u rke2-server -n 100 --no-pager'
+  -a 'systemctl is-active rke2-server || true'
 ```
 
-Then get only the important errors:
+Expected:
 
-```bash
-ansible 'master02:master03' \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'journalctl -u rke2-server --since "-20 min" --no-pager | egrep -i "fatal|error|failed|certificate|token|etcd|learner|9345|6443|x509|tls" | tail -100'
+```text
+inactive
 ```
 
-Also show the generated config on all masters:
+### 2. Verify IP addresses and routing on all three masters
+
+Run:
 
 ```bash
 ansible masters \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'echo "=== $(hostname) ==="; cat /etc/rancher/rke2/config.yaml'
+  -a 'echo "=== $(hostname) ==="; ip -br addr; echo "--- routes ---"; ip route'
 ```
 
-Pay very close attention to these values on `master02` and `master03`:
+Based on your inventory, we expect approximately:
+
+```text
+master01 → 10.174.161.22
+master02 → 10.174.161.23
+master03 → 10.174.161.24
+```
+
+If these are intended to be on the same subnet, you should see something like:
+
+```text
+10.174.161.0/24 dev eth0 proto kernel scope link src 10.174.161.23
+```
+
+on `master02`, for example.
+
+Then run the kernel's route decision:
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m command \
+  -a 'ip route get 10.174.161.22'
+```
+
+A healthy same-subnet result should resemble:
+
+```text
+10.174.161.22 dev eth0 src 10.174.161.23
+```
+
+If instead you see a gateway or unexpected interface, the network configuration is wrong.
+
+### 3. Test plain ICMP before RKE2 ports
+
+Run:
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'ping -c 4 -W 2 10.174.161.22'
+```
+
+Then test reverse connectivity from `master01`:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'ping -c 3 10.174.161.23; ping -c 3 10.174.161.24'
+```
+
+If ping fails, don't touch RKE2 yet.
+
+### 4. Check neighbor/ARP resolution
+
+Because these IP addresses appear to be adjacent, this is particularly important:
+
+```bash
+ansible masters \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'ip neigh show'
+```
+
+After pinging `master01`, check specifically:
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'ip neigh show 10.174.161.22'
+```
+
+Healthy:
+
+```text
+10.174.161.22 dev eth0 lladdr xx:xx:xx:xx:xx:xx REACHABLE
+```
+
+Problematic:
+
+```text
+10.174.161.22 dev eth0 FAILED
+```
+
+or:
+
+```text
+INCOMPLETE
+```
+
+If you get `FAILED/INCOMPLETE`, think VLAN, subnet mask, vSwitch/port-group, or L2 security—not RKE2.
+
+### 5. Check the SUSE firewall
+
+`No route to host` can be misleading. A firewall rule using `REJECT` can produce that message even when the routing table is perfectly fine.
+
+Check all three:
+
+```bash
+ansible masters \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'systemctl is-active firewalld || true; firewall-cmd --state 2>/dev/null || true; firewall-cmd --get-active-zones 2>/dev/null || true; firewall-cmd --list-all 2>/dev/null || true'
+```
+
+For a controlled diagnostic, temporarily stop firewalld on the three cluster nodes:
+
+```bash
+ansible masters \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m systemd \
+  -a 'name=firewalld state=stopped'
+```
+
+Then immediately retest:
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'nc -zvw3 10.174.161.22 9345; nc -zvw3 10.174.161.22 6443'
+```
+
+If this suddenly works, we've found the problem.
+
+Don't permanently leave the firewall disabled; we can build the proper RKE2 rules afterward.
+
+### 6. Confirm master01 is actually listening
+
+We already know RKE2 is running on `master01`, but verify the sockets:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'ss -lntp | egrep ":(6443|9345|2379|2380)\b"'
+```
+
+You should see at least:
+
+```text
+:9345
+:6443
+:2379
+:2380
+```
+
+The critical thing is that `9345` must not be listening only on:
+
+```text
+127.0.0.1:9345
+```
+
+It needs to be reachable from the other servers.
+
+Also test locally from `master01`:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'curl -ks https://127.0.0.1:9345/cacerts | head; echo; curl -ks https://10.174.161.22:9345/cacerts | head'
+```
+
+If both work locally, `master01` itself is serving RKE2 correctly.
+
+### 7. Check nftables too
+
+SUSE may have nftables rules even if what you expect from firewalld isn't obvious:
+
+```bash
+ansible masters \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'nft list ruleset 2>/dev/null | head -200'
+```
+
+Specifically:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'nft list ruleset 2>/dev/null | egrep -i "reject|drop|9345|6443|2379|2380"'
+```
+
+### 8. Then verify the RKE2 token
+
+Your captured configuration currently shows:
 
 ```yaml
-server:
+server: https://10.174.161.22:9345
 token:
-node-name:
-node-ip:
-tls-san:
-cluster-cidr:
-service-cidr:
-cni:
 ```
 
-For your current topology I expect something conceptually like:
+on all three masters. 
 
-```yaml
-# master01
-server: https://10.174.161.22:9345
-node-name: master01
+If that's literally what is in `/etc/rancher/rke2/config.yaml`, it's wrong.
 
-# master02
-server: https://10.174.161.22:9345
-node-name: master02
+Check without printing the actual secret:
 
-# master03
-server: https://10.174.161.22:9345
-node-name: master03
+```bash
+ansible masters \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'TOKEN=$(awk "/^[[:space:]]*token:/ {sub(/^[^:]*:[[:space:]]*/,\"\"); print; exit}" /etc/rancher/rke2/config.yaml); echo "token_length=${#TOKEN}"'
 ```
 
-All three must have the **same token**.
+You want a non-zero number on all three.
 
-Also confirm connectivity from the joining masters to `master01`:
+If you get:
+
+```text
+token_length=0
+```
+
+then your Ansible token variable is not being rendered correctly.
+
+Find where the role gets the token:
+
+```bash
+grep -RniE 'rke2_token|token:' \
+  inventory/dev \
+  playbooks \
+  roles/lablabs.rke2/defaults \
+  roles/lablabs.rke2/vars \
+  roles/lablabs.rke2/templates
+```
+
+Do **not** paste the real token here. Just show variable names and `token_length`.
+
+### 9. After networking works
+
+The critical test is:
 
 ```bash
 ansible 'master02:master03' \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'curl -k -s -o /dev/null -w "9345=%{http_code}\n" https://10.174.161.22:9345/ping; nc -zv 10.174.161.22 9345; nc -zv 10.174.161.22 6443'
+  -a 'curl -ksS --connect-timeout 3 https://10.174.161.22:9345/cacerts | head'
 ```
 
-You should at least get successful TCP connectivity to:
+If that returns certificate data rather than:
 
 ```text
-9345   RKE2 supervisor
-6443   Kubernetes API
+No route to host
 ```
 
-Also check etcd traffic because these are server/control-plane nodes:
+then start **master02 only** first:
 
 ```bash
-ansible 'master02:master03' \
+ansible master02 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m systemd \
+  -a 'name=rke2-server state=started'
+```
+
+Follow it:
+
+```bash
+ansible master02 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'nc -zv 10.174.161.22 2379; nc -zv 10.174.161.22 2380'
+  -a 'journalctl -u rke2-server -n 80 --no-pager'
 ```
 
-Another important thing: your playbook is using:
-
-```text
-RKE2 v1.35.3+rke2r1
-```
-
-
-
-and the running node confirms that exact version. 
-
-So do not mix a newer `v1.35.7+rke2r1` artifact into `master02` or `master03` yet. Keep all three identical until the control plane is stable.
-
-One more thing is important in your Ansible role behavior. This task:
-
-```text
-Wait for remaining nodes to be ready - no CNI
-```
-
-is logically problematic when you deliberately configure:
-
-```yaml
-cni: none
-```
-
-because Kubernetes nodes normally remain `NotReady` until a CNI initializes. Your playbook is therefore waiting for something that cannot happen yet. You can see it retrying after `master01` successfully registered. 
-
-I recommend changing that role check. Instead of waiting for:
+Then from `master01`:
 
 ```bash
-kubectl get node ... Ready
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
 ```
 
-during the **pre-CNI** stage, wait for the nodes to merely register:
+Once `master02` registers, repeat for `master03`.
 
-```yaml
-- name: Wait for remaining nodes to register - no CNI
-  ansible.builtin.command:
-    cmd: >
-      /var/lib/rancher/rke2/bin/kubectl
-      --kubeconfig /etc/rancher/rke2/rke2.yaml
-      get node {{ item }}
-  register: node_registered
-  until: node_registered.rc == 0
-  retries: 60
-  delay: 10
-  changed_when: false
-  loop: "{{ groups['masters'] }}"
-  when:
-    - rke2_cni == "none"
+I would **not wipe `/var/lib/rancher/rke2` at this point**. The logs show a straightforward reachability failure, not corrupted etcd membership. Fix the network first; deleting data now would turn one problem into two.
+
+The most useful next output is these four commands:
+
+```bash
+ansible masters -i inventory/dev/hosts.ini -b -m shell \
+  -a 'hostname; ip -br addr; ip route'
 ```
 
-Then after Cilium is installed, add a separate proper readiness check:
-
-```yaml
-- name: Wait for nodes to become Ready after Cilium
-  ansible.builtin.command:
-    cmd: >
-      /var/lib/rancher/rke2/bin/kubectl
-      --kubeconfig /etc/rancher/rke2/rke2.yaml
-      wait
-      --for=condition=Ready
-      node/{{ item }}
-      --timeout=600s
-  loop: "{{ groups['masters'] + groups['workers'] }}"
+```bash
+ansible 'master02:master03' -i inventory/dev/hosts.ini -b -m command \
+  -a 'ip route get 10.174.161.22'
 ```
 
-So the correct deployment sequence for your design should now be:
-
-```text
-1. RKE2 binary/install
-2. master01 bootstrap
-3. master02 + master03 join
-4. verify all 3 nodes REGISTERED
-5. verify etcd 3-member cluster
-6. install Cilium
-7. wait for nodes Ready
-8. CoreDNS becomes Running
-9. deploy workers
-10. install remaining platform components
+```bash
+ansible 'master02:master03' -i inventory/dev/hosts.ini -b -m shell \
+  -a 'ping -c 3 10.174.161.22; ip neigh show 10.174.161.22'
 ```
 
-At this exact moment, I would focus on the `journalctl` output from **master02 and master03**. `master01` is behaving exactly as expected for an RKE2 cluster configured with `cni: none`; the joining control-plane nodes are the real blocker.
+```bash
+ansible master01 -i inventory/dev/hosts.ini -b -m shell \
+  -a 'ss -lntp | egrep ":(9345|6443|2379|2380)\b"; firewall-cmd --state 2>/dev/null || true; firewall-cmd --list-all 2>/dev/null || true'
+```
+
+Those will tell us very quickly whether the offender is **routing/subnet, VLAN/L2, or SUSE firewall**.
