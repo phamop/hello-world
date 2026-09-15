@@ -1,3 +1,340 @@
+ansible-playbook   -i inventory/dev/hosts.ini   playbooks/deploy-rke2.yml   --limit=master01
+
+PLAY [Deploy RKE2] ******************************************************************************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Validating arguments against arg spec 'main' - This is the main entrypoint for the lablabs.rke2 role.] *********************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Install Keepalived when HA mode is enabled] ********************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Download and install RKE2 v1.35.3+rke2r1] **********************************************************************************************************
+included: /home/ooridota/nonprd/roles/lablabs.rke2/tasks/rke2.yml for master01
+
+TASK [lablabs.rke2 : Download RKE2 installation script] *****************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy local RKE2 installation script] ***************************************************************************************************************
+changed: [master01]
+
+TASK [lablabs.rke2 : Create RKE2 artifacts folder] **********************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Download sha256 checksum file ( airgap mode )] *****************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Download RKE2 artifacts and compare with checksums ( airgap mode )] ********************************************************************************
+skipping: [master01] => (item=rke2.linux-amd64.tar.gz)
+skipping: [master01] => (item=rke2-images.linux-amd64.tar.zst)
+skipping: [master01]
+
+TASK [lablabs.rke2 : Download RKE2 install script ( airgap mode )] ******************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy local RKE2 artifacts] *************************************************************************************************************************
+ok: [master01] => (item=sha256sum-amd64.txt)
+ok: [master01] => (item=rke2.linux-amd64.tar.gz)
+ok: [master01] => (item=rke2-images.linux-amd64.tar.zst)
+
+TASK [lablabs.rke2 : Create additional images tarballs folder] **********************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy additional tarball images RKE2 components] ****************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Register artifacts] ********************************************************************************************************************************
+skipping: [master01] => (item=sha256sum-amd64.txt)
+skipping: [master01] => (item=rke2.linux-amd64.tar.gz)
+skipping: [master01] => (item=rke2-images.linux-amd64.tar.zst)
+skipping: [master01]
+
+TASK [lablabs.rke2 : Register install script] ***************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Register artifact facts] ***************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Make the artifacts read-only] **********************************************************************************************************************
+skipping: [master01] => (item=sha256sum-amd64.txt)
+skipping: [master01] => (item=rke2.linux-amd64.tar.gz)
+skipping: [master01] => (item=rke2-images.linux-amd64.tar.zst)
+skipping: [master01]
+
+TASK [lablabs.rke2 : Make the install script executable.] ***************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Install script must be executable] *****************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Populate service facts] ****************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Get stats of the FS object] ************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Check if separate partition] ***********************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Set RKE2 bin path] *********************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Check RKE2 version] ********************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Set RKE2 versions] *********************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Prevent accidental RKE2 downgrade] *****************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Run RKE2 install script with airgap variables] *****************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Run RKE2 install script without airgap variables] **************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy Custom Manifests] *****************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy Static Pods] **********************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy RKE2 environment file] ************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : CIS Hardening] *************************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Find Active Server] ********************************************************************************************************************************
+included: /home/ooridota/nonprd/roles/lablabs.rke2/tasks/find_active_server.yml for master01
+
+TASK [lablabs.rke2 : Populate services facts] ***************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Set the Active Server variable] ********************************************************************************************************************
+skipping: [master01] => (item=master01)
+skipping: [master01] => (item=master02)
+skipping: [master01] => (item=master03)
+skipping: [master01]
+
+TASK [lablabs.rke2 : Enable IPVS kernel module] *************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy kube-vip manifests to the masternode] *********************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Fail if rke2_ingress_controller is not string or list] *********************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy ingress-nginx manifests to the masternode] ****************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy traefik manifests to the masternode] **********************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Prepare very first server node in the cluster] *****************************************************************************************************
+included: /home/ooridota/nonprd/roles/lablabs.rke2/tasks/first_server.yml for master01
+
+TASK [lablabs.rke2 : Create the RKE2 config dir] ************************************************************************************************************************
+changed: [master01]
+
+TASK [lablabs.rke2 : Set server taints] *********************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Copy rke2 config] **********************************************************************************************************************************
+changed: [master01]
+
+TASK [lablabs.rke2 : Copy kubelet config] *******************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy Containerd Registry Configuration file] *******************************************************************************************************
+changed: [master01]
+
+TASK [lablabs.rke2 : Register if we need to do a etcd restore from file] ************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Register if we need to do a etcd restore from s3] **************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Create the RKE2 etcd snapshot dir] *****************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy etcd snapshot file] ***************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Restore etcd from a snapshot] **********************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Restore etcd from a s3 snapshot] *******************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Start RKE2 service on the first server] ************************************************************************************************************
+changed: [master01]
+
+TASK [lablabs.rke2 : Mask RKE2 agent service on the first server] *******************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Wait for the first server be ready - no CNI] *******************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Wait for the first server be ready - with CNI] *****************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Get registered nodes] ******************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Get all node names] ********************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Remove old <node>.node-password.rke2 secrets] ******************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Remove old nodes] **********************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Set an Active Server variable] *********************************************************************************************************************
+ok: [master01] => (item=master01)
+ok: [master01 -> master02(10.174.161.23)] => (item=master02)
+ok: [master01 -> master03(10.174.161.24)] => (item=master03)
+
+TASK [lablabs.rke2 : Restore etcd specific tasks] ***********************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Download kubeconfig to ansible localhost] **********************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Prepare and join remaining nodes of the cluster] ***************************************************************************************************
+included: /home/ooridota/nonprd/roles/lablabs.rke2/tasks/remaining_nodes.yml for master01
+
+TASK [lablabs.rke2 : Create the RKE2 config dir] ************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Set server taints] *********************************************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Set agent taints] **********************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy RKE2 config] **********************************************************************************************************************************
+changed: [master01]
+
+TASK [lablabs.rke2 : Copy kubelet config] *******************************************************************************************************************************
+skipping: [master01]
+
+TASK [lablabs.rke2 : Copy Containerd Registry Configuration file] *******************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Start RKE2 service on the rest of the nodes] *******************************************************************************************************
+ok: [master01]
+
+TASK [lablabs.rke2 : Mask other RKE2 service on the rest of the nodes] **************************************************************************************************
+ok: [master01] => (item=agent)
+
+TASK [lablabs.rke2 : Wait for remaining nodes to be ready - no CNI] *****************************************************************************************************
+ok: [master01] => (item=master01)
+FAILED - RETRYING: [master01]: Wait for remaining nodes to be ready - no CNI (100 retries left).
+FAILED - RETRYING: [master01]: Wait for remaining nodes to be ready - no CNI (99 retries left).
+^C [ERROR]: User interrupted execution
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 -i inventory/dev/hosts.ini -m command -a 'systemctl status rke2-server'
+master01 | CHANGED | rc=0 >>
+● rke2-server.service - Rancher Kubernetes Engine v2 (server)
+     Loaded: loaded (/etc/systemd/system/rke2-server.service; enabled; preset: disabled)
+     Active: active (running) since Wed 2026-09-16 00:38:47 CEST; 1min 19s ago
+ Invocation: 55d7cec1631d4f6b86a19a60f0b7df8b
+       Docs: https://github.com/rancher/rke2#readme
+    Process: 75019 ExecCondition=/bin/sh -c if systemctl is-active --quiet rke2-agent.service; then echo "Error: rke2-agent is running!"; exit 1; fi (code=exited, status=0/SUCCESS)
+    Process: 75021 ExecStartPre=/sbin/modprobe br_netfilter (code=exited, status=0/SUCCESS)
+    Process: 75032 ExecStartPre=/sbin/modprobe overlay (code=exited, status=0/SUCCESS)
+   Main PID: 75035 (rke2)
+      Tasks: 112
+        CPU: 1min 7.153s
+     CGroup: /system.slice/rke2-server.service
+             ├─75035 "/opt/rke2/bin/rke2 server"
+             ├─75055 containerd -c /var/lib/rancher/rke2/agent/etc/containerd/config.toml
+             ├─75083 kubelet --volume-plugin-dir=/var/lib/kubelet/volumeplugins --file-check-frequency=5s --sync-frequency=30s --cloud-provider=external --config-dir=/var/lib/rancher/rke2/agent/etc/kubelet.conf.d --containerd=/run/k3s/containerd/containerd.sock --hostname-override=master01 --kubeconfig=/var/lib/rancher/rke2/agent/kubelet.kubeconfig --node-ip=10.174.161.22 --node-labels= --read-only-port=0
+             ├─75113 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id 8139e6198cb105fd7fcd5d0beee4f43e7b56e6830422844fe9587bcb0a9d5a7d -address /run/k3s/containerd/containerd.sock
+             ├─75133 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id a73f43d90a195e78d7557588dbef925a002c46ed9c8cf883bb42c57236c60253 -address /run/k3s/containerd/containerd.sock
+             ├─75265 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id 174552fe404ad98f5d2b39068494adcb399955b28f8919ea466448b062c14692 -address /run/k3s/containerd/containerd.sock
+             ├─75411 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id 9a3812309ae1f1422f7d45cda31c2db508e2878b60aff081f9e592868a90ac5a -address /run/k3s/containerd/containerd.sock
+             ├─75413 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id 76c58d93326b8111698958344f1f62cf8fc163f9795f8794574c018a1d15ecc3 -address /run/k3s/containerd/containerd.sock
+             └─75718 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id e2fd91647ec3580562847f31cb6ddb9f5ed5ca0ce6fba1c0101ec717e8955edc -address /run/k3s/containerd/containerd.sock
+
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Adding node OwnerReference to node-password secret master01.node-password.rke2"
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Started tunnel to 10.174.161.22:9345"
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Stopped tunnel to 127.0.0.1:9345"
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Connecting to proxy" url="wss://10.174.161.22:9345/v1-rke2/connect"
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Proxy done" err="context canceled" url="wss://127.0.0.1:9345/v1-rke2/connect"
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="error in remotedialer server [400]: websocket: close 1006 (abnormal closure): unexpected EOF"
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Handling backend connection request [master01]"
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Connected to proxy" url="wss://10.174.161.22:9345/v1-rke2/connect"
+Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Remotedialer connected to proxy" url="wss://10.174.161.22:9345/v1-rke2/connect"
+Sep 16 00:39:03 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:39:03+02:00" level=info msg="Adding node master01-5b85ac7a etcd status condition"
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Yes. If you are fixing the `^M` / Windows CRLF characters you saw in your Ansible files, `dos2unix` is a good way to do it, and you can safely automate it with a script.
 
 A simple recursive script for your Ansible repository:
