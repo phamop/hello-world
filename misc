@@ -1,3 +1,26 @@
+ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key   endpoint health -w table
++----------------------------+--------+------------+-------+
+|          ENDPOINT          | HEALTH |    TOOK    | ERROR |
++----------------------------+--------+------------+-------+
+| https://10.174.161.22:2379 |   true |  3.21814ms |       |
+| https://10.174.161.23:2379 |   true |   3.2381ms |       |
+| https://10.174.161.24:2379 |   true | 3.423227ms |       |
++----------------------------+--------+------------+-------+
+ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key   endpoint health -w table
++----------------------------+--------+------------+-------+
+|          ENDPOINT          | HEALTH |    TOOK    | ERROR |
++----------------------------+--------+------------+-------+
+| https://10.174.161.22:2379 |   true | 3.186413ms |       |
+| https://10.174.161.23:2379 |   true | 3.232652ms |       |
+| https://10.174.161.24:2379 |   true | 3.179302ms |       |
++----------------------------+--------+------------+-------+
+ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp #
+
+
+
+
+
+
 ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpo                                                                                                      ints=https://127.0.0.1:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/va                                                                                                      r/lib/rancher/rke2/server/tls/etcd/server-client.key   member list -w table
 +------------------+---------+-------------------+----------------------------+----------------------------+------------+
 |        ID        | STATUS  |       NAME        |         PEER ADDRS         |        CLIENT ADDRS        | IS LEARNER |
