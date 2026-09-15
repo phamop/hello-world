@@ -15,21 +15,15 @@ spec:
   type: LoadBalancer
 
 
-$ cat  inventory/dev/group_vars/all.yml
+---
 ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
 ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
 
 ansible_become: true
 ansible_become_method: sudo
-
-ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
 ansible_become_password: "{{ lookup('env', 'ANSIBLE_BECOME_PASSWORD') }}"
 
 ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
 
 environment_name: "non-production"
 ansible_python_interpreter: "/usr/bin/python3"
-
-vars:
-  ansible_user: gitlab
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
