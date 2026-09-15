@@ -1,344 +1,201 @@
-Your RKE2 installation on `master01` itself is successful. The failure is happening later when the `lablabs.rke2` role waits for Kubernetes node readiness.
+You are past the original `/var/tmp/rke2.sh` problem. The new issue is now the cluster bootstrap itself, and there are **two separate problems**.
 
-Two important findings stand out from your output.
+First, `master01` is actually healthy at the RKE2 control-plane level. Its API server, etcd, scheduler, controller-manager, kube-proxy, and containerd are running, and `/readyz` passes. 
 
-First, you are **actually installing RKE2 `v1.35.3+rke2r1`**, not `v1.35.7+rke2r1`. The role explicitly says `Download and install RKE2 v1.35.3+rke2r1`, and the running binaries are also under `v1.35.3-rke2r1-...`.  
-
-So before going further, check where that version is coming from:
-
-```bash
-grep -RniE '1\.35\.3|rke2_version' \
-  inventory group_vars host_vars playbooks roles
-```
-
-You will probably find something similar to:
-
-```yaml
-rke2_version: "v1.35.3+rke2r1"
-```
-
-If you intended:
-
-```yaml
-rke2_version: "v1.35.7+rke2r1"
-```
-
-then change the controlling variable before deploying the remaining nodes.
-
----
-
-## What is working
-
-The RKE2 server service is healthy at the systemd level:
-
-```text
-Active: active (running)
-```
-
-and the RKE2 process, containerd, and kubelet are running. 
-
-RKE2 also successfully established its remotedialer/proxy connection to:
-
-```text
-10.174.161.22:9345
-```
-
-and ultimately reports:
-
-```text
-Connected to proxy
-Remotedialer connected to proxy
-```
-
-So the transient:
-
-```text
-websocket: close 1006
-```
-
-is not the primary problem because RKE2 reconnects immediately afterward. 
-
-The important failure is here:
-
-```text
-Wait for remaining nodes to be ready - no CNI
-
-ok: [master01] => (item=master01)
-FAILED - RETRYING...
-```
-
-That means the role got through installation and startup, but its Kubernetes readiness condition is not being satisfied for another expected node or cluster condition. 
-
-## Check Kubernetes directly
-
-Run this on `master01` through Ansible:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
-```
-
-I specifically want to see something like:
-
-```text
-NAME       STATUS     ROLES                       AGE   VERSION
-master01   Ready      control-plane,etcd,master   ...
-```
-
-or:
-
-```text
-master01   NotReady   control-plane,etcd,master   ...
-```
-
-Next:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -A -o wide'
-```
-
-Because you are installing with **no CNI yet**, some `NotReady`/Pending behavior is expected. But we need to distinguish expected CNI absence from an API/etcd/bootstrap problem.
-
-Then get detailed node conditions:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml describe node master01'
-```
-
-Focus on:
-
-```text
-Conditions:
-  NetworkUnavailable
-  MemoryPressure
-  DiskPressure
-  PIDPressure
-  Ready
-```
-
-Also run:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get node master01 -o jsonpath="{range .status.conditions[*]}{.type}{\"=\"}{.status}{\" reason=\"}{.reason}{\" message=\"}{.message}{\"\\n\"}{end}"'
-```
-
-That will tell us exactly why the role thinks the node isn't ready.
-
-## I also see a possible naming issue
-
-Your operating-system hostname in the logs is:
-
-```text
-ca-gat-dc1-nosd-stg-vm-pectr-01
-```
-
-but RKE2 is explicitly running kubelet as:
-
-```text
---hostname-override=master01
-```
-
-That part can be valid, but notice this log entry:
-
-```text
-Adding node master01-5b85ac7a etcd status condition
-```
-
-while the Kubernetes node appears intended to be:
-
-```text
-master01
-```
-
-Let's therefore check exactly what Kubernetes thinks the node names are:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o name'
-```
-
-Also check RKE2 configuration:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'cat /etc/rancher/rke2/config.yaml'
-```
-
-I'm particularly interested in:
-
-```yaml
-node-name:
-node-ip:
-token:
-server:
-cni:
-```
-
-For the first control-plane node I would expect approximately:
-
-```yaml
-node-name: master01
-node-ip: 10.174.161.22
-token: <cluster-token>
-cni: none
-```
-
-There normally should **not** be a `server:` pointing to another master on the very first bootstrap server.
-
-## Your `--limit master01` matters
-
-You launched:
-
-```bash
-ansible-playbook \
-  -i inventory/dev/hosts.ini \
-  playbooks/deploy-rke2.yml \
-  --limit=master01
-```
-
-Yet the role still knows about and delegates operations to:
-
-```text
-master02 10.174.161.23
-master03 10.174.161.24
-```
-
-The output proves that:
-
-```text
-master01 -> master02(10.174.161.23)
-master01 -> master03(10.174.161.24)
-```
-
-
-
-This matters because `lablabs.rke2` is designed around the **whole cluster inventory**. `--limit master01` does not necessarily turn the cluster definition into a one-node cluster. The role can still iterate over all servers from inventory variables/groups.
-
-So I would **not continue repeatedly running the full role with `--limit master01`** until we establish precisely what the wait task is checking.
-
-Inspect that task:
-
-```bash
-sed -n '1,260p' \
-  roles/lablabs.rke2/tasks/remaining_nodes.yml
-```
-
-And specifically:
-
-```bash
-grep -nA25 -B10 \
-  'Wait for remaining nodes to be ready - no CNI' \
-  roles/lablabs.rke2/tasks/remaining_nodes.yml
-```
-
-That command is especially important. It will show exactly what condition is retrying.
-
-## Check etcd too
-
-Since this is the first control-plane node, verify etcd before adding 02/03:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get --raw="/readyz?verbose"'
-```
-
-You want the API server checks to be predominantly:
-
-```text
-[+]ping ok
-[+]log ok
-[+]etcd ok
-...
-readyz check passed
-```
-
-Also:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'journalctl -u rke2-server --since "-10 min" --no-pager | egrep -i "error|failed|fatal|etcd|cni|network|certificate" | tail -100'
-```
-
-## My recommended deployment sequence
-
-For this air-gapped build, I would deploy more deterministically:
-
-```text
-1. master01
-      ↓
-   validate API
-      ↓
-   validate etcd
-      ↓
-   validate containerd
-      ↓
-   validate registry access
-      ↓
-2. master02
-      ↓
-3. master03
-      ↓
-   validate 3-member etcd
-      ↓
-4. workers
-      ↓
-5. Cilium
-      ↓
-6. verify all nodes Ready
-```
-
-Since Cilium is intentionally installed separately, don't use ordinary Kubernetes `Ready` as the only bootstrap success criterion before Cilium exists. A node can legitimately remain `NotReady` because:
+The reason `master01` is `NotReady` is very clear:
 
 ```text
 NetworkPluginNotReady
 cni plugin not initialized
 ```
 
-while RKE2, kubelet, containerd, API server and etcd are otherwise healthy.
+Your generated RKE2 config explicitly contains:
 
-### Run these four commands next
-
-```bash
-K=/var/lib/rancher/rke2/bin/kubectl
-CFG=/etc/rancher/rke2/rke2.yaml
-
-sudo $K --kubeconfig "$CFG" get nodes -o wide
-
-sudo $K --kubeconfig "$CFG" get pods -A -o wide
-
-sudo $K --kubeconfig "$CFG" get node master01 \
-  -o jsonpath='{range .status.conditions[*]}{.type}{"="}{.status}{" reason="}{.reason}{" message="}{.message}{"\n"}{end}'
-
-grep -nA25 -B10 \
-  'Wait for remaining nodes to be ready - no CNI' \
-  roles/lablabs.rke2/tasks/remaining_nodes.yml
+```yaml
+cni: none
 ```
 
-Those results will tell us whether this is simply the role's no-CNI wait logic, an inventory/`--limit` interaction, or a real bootstrap problem.
+
+
+That matches your intended design if you plan to install **Cilium separately after RKE2**. So this part is expected. Until Cilium is installed, Kubernetes will report:
+
+```text
+Ready=False
+```
+
+and pods such as CoreDNS, metrics-server, ingress-nginx, and the Helm installer jobs will remain Pending. 
+
+The bigger issue right now is `master02` and `master03`. Both `rke2-server` services are crashing with exit code 1. 
+
+So I would **not install Cilium yet**. First make all three control-plane nodes successfully join the RKE2 cluster.
+
+Run these diagnostics next.
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'journalctl -u rke2-server -n 100 --no-pager'
+```
+
+Then get only the important errors:
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'journalctl -u rke2-server --since "-20 min" --no-pager | egrep -i "fatal|error|failed|certificate|token|etcd|learner|9345|6443|x509|tls" | tail -100'
+```
+
+Also show the generated config on all masters:
+
+```bash
+ansible masters \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'echo "=== $(hostname) ==="; cat /etc/rancher/rke2/config.yaml'
+```
+
+Pay very close attention to these values on `master02` and `master03`:
+
+```yaml
+server:
+token:
+node-name:
+node-ip:
+tls-san:
+cluster-cidr:
+service-cidr:
+cni:
+```
+
+For your current topology I expect something conceptually like:
+
+```yaml
+# master01
+server: https://10.174.161.22:9345
+node-name: master01
+
+# master02
+server: https://10.174.161.22:9345
+node-name: master02
+
+# master03
+server: https://10.174.161.22:9345
+node-name: master03
+```
+
+All three must have the **same token**.
+
+Also confirm connectivity from the joining masters to `master01`:
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'curl -k -s -o /dev/null -w "9345=%{http_code}\n" https://10.174.161.22:9345/ping; nc -zv 10.174.161.22 9345; nc -zv 10.174.161.22 6443'
+```
+
+You should at least get successful TCP connectivity to:
+
+```text
+9345   RKE2 supervisor
+6443   Kubernetes API
+```
+
+Also check etcd traffic because these are server/control-plane nodes:
+
+```bash
+ansible 'master02:master03' \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'nc -zv 10.174.161.22 2379; nc -zv 10.174.161.22 2380'
+```
+
+Another important thing: your playbook is using:
+
+```text
+RKE2 v1.35.3+rke2r1
+```
+
+
+
+and the running node confirms that exact version. 
+
+So do not mix a newer `v1.35.7+rke2r1` artifact into `master02` or `master03` yet. Keep all three identical until the control plane is stable.
+
+One more thing is important in your Ansible role behavior. This task:
+
+```text
+Wait for remaining nodes to be ready - no CNI
+```
+
+is logically problematic when you deliberately configure:
+
+```yaml
+cni: none
+```
+
+because Kubernetes nodes normally remain `NotReady` until a CNI initializes. Your playbook is therefore waiting for something that cannot happen yet. You can see it retrying after `master01` successfully registered. 
+
+I recommend changing that role check. Instead of waiting for:
+
+```bash
+kubectl get node ... Ready
+```
+
+during the **pre-CNI** stage, wait for the nodes to merely register:
+
+```yaml
+- name: Wait for remaining nodes to register - no CNI
+  ansible.builtin.command:
+    cmd: >
+      /var/lib/rancher/rke2/bin/kubectl
+      --kubeconfig /etc/rancher/rke2/rke2.yaml
+      get node {{ item }}
+  register: node_registered
+  until: node_registered.rc == 0
+  retries: 60
+  delay: 10
+  changed_when: false
+  loop: "{{ groups['masters'] }}"
+  when:
+    - rke2_cni == "none"
+```
+
+Then after Cilium is installed, add a separate proper readiness check:
+
+```yaml
+- name: Wait for nodes to become Ready after Cilium
+  ansible.builtin.command:
+    cmd: >
+      /var/lib/rancher/rke2/bin/kubectl
+      --kubeconfig /etc/rancher/rke2/rke2.yaml
+      wait
+      --for=condition=Ready
+      node/{{ item }}
+      --timeout=600s
+  loop: "{{ groups['masters'] + groups['workers'] }}"
+```
+
+So the correct deployment sequence for your design should now be:
+
+```text
+1. RKE2 binary/install
+2. master01 bootstrap
+3. master02 + master03 join
+4. verify all 3 nodes REGISTERED
+5. verify etcd 3-member cluster
+6. install Cilium
+7. wait for nodes Ready
+8. CoreDNS becomes Running
+9. deploy workers
+10. install remaining platform components
+```
+
+At this exact moment, I would focus on the `journalctl` output from **master02 and master03**. `master01` is behaving exactly as expected for an RKE2 cluster configured with `cni: none`; the joining control-plane nodes are the real blocker.
