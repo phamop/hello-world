@@ -1,4 +1,178 @@
- ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
+That’s progress: all three control-plane nodes have now joined the cluster successfully.
+
+What you’re seeing now is expected for your current configuration because you intentionally set:
+
+```yaml
+cni: none
+```
+
+All three nodes are therefore registered as:
+
+```text
+control-plane,etcd
+```
+
+but remain:
+
+```text
+NotReady
+```
+
+because there is still no CNI installed. `master02` and `master03` joining confirms the earlier supervisor/networking problem is resolved.
+
+At this stage, verify etcd membership first:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
+```
+
+You already have the expected three-node result.
+
+Now check the node readiness reason:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o jsonpath="{range .items[*]}{.metadata.name}{\" => \"}{range .status.conditions[?(@.type==\"Ready\")]}{.status}{\" : \"}{.reason}{\" : \"}{.message}{end}{\"\\n\"}{end}"'
+```
+
+I expect something like:
+
+```text
+master01 => False : KubeletNotReady : container runtime network not ready ...
+master02 => False : KubeletNotReady : container runtime network not ready ...
+master03 => False : KubeletNotReady : container runtime network not ready ...
+```
+
+That is normal until Cilium is installed.
+
+Also confirm the three etcd static pods are running:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -n kube-system -o wide | egrep "etcd-|kube-apiserver|kube-controller|kube-scheduler"'
+```
+
+You should see one etcd pod for each master.
+
+Then check etcd membership directly:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'ETCDCTL=$(find /var/lib/rancher/rke2/data -type f -name etcdctl | head -1); \
+  export ETCDCTL_API=3; \
+  $ETCDCTL \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
+  --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
+  --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
+  member list -w table'
+```
+
+You want three members.
+
+After that, your next deployment step should be **Cilium**, not workers and not the rest of the platform yet.
+
+The correct flow from here is:
+
+```text
+RKE2 masters joined
+        ↓
+Verify 3-member etcd
+        ↓
+Install Cilium
+        ↓
+Wait for all masters Ready
+        ↓
+Verify CoreDNS
+        ↓
+Join workers
+        ↓
+Verify all nodes Ready
+        ↓
+cert-manager
+        ↓
+Cilium SPIRE
+        ↓
+Argo CD
+        ↓
+Rancher
+        ↓
+MetalLB
+        ↓
+Rook-Ceph last
+```
+
+One thing I would change in your Ansible role now: the task named:
+
+```text
+Wait for remaining nodes to be ready - no CNI
+```
+
+should not wait for Kubernetes `Ready=True` when `cni: none`. That condition cannot succeed before Cilium is installed.
+
+Instead, that task should only verify that the nodes are registered:
+
+```yaml
+- name: Wait for remaining nodes to register - no CNI
+  ansible.builtin.command:
+    cmd: >
+      /var/lib/rancher/rke2/bin/kubectl
+      --kubeconfig /etc/rancher/rke2/rke2.yaml
+      get node {{ item }}
+  register: node_registered
+  until: node_registered.rc == 0
+  retries: 60
+  delay: 10
+  changed_when: false
+  loop: "{{ groups['masters'] }}"
+```
+
+Then after Cilium installs, add the real readiness check:
+
+```yaml
+- name: Wait for control-plane nodes to become Ready
+  ansible.builtin.command:
+    cmd: >
+      /var/lib/rancher/rke2/bin/kubectl
+      --kubeconfig /etc/rancher/rke2/rke2.yaml
+      wait
+      --for=condition=Ready
+      node/{{ item }}
+      --timeout=600s
+  loop: "{{ groups['masters'] }}"
+```
+
+Your cluster is now at the exact point where the **Cilium playbook should run**. The important thing is not to interpret `NotReady` as another RKE2 failure; with `cni: none`, it is the expected state until Cilium initializes networking.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
 master01 | CHANGED | rc=0 >>
 NAME       STATUS     ROLES                AGE    VERSION          INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                            KERNEL-VERSION            CONTAINER-RUNTIME
 master01   NotReady   control-plane,etcd   42m    v1.35.3+rke2r1   10.174.161.22   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
