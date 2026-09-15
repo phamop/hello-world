@@ -1,3 +1,23 @@
+ ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
+master01 | CHANGED | rc=0 >>
+NAME       STATUS     ROLES                AGE    VERSION          INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                            KERNEL-VERSION            CONTAINER-RUNTIME
+master01   NotReady   control-plane,etcd   42m    v1.35.3+rke2r1   10.174.161.22   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
+master02   NotReady   control-plane,etcd   108s   v1.35.3+rke2r1   10.174.161.23   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
+master03   NotReady   control-plane,etcd   89s    v1.35.3+rke2r1   10.174.161.24   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
+
+
+
+
+
+
+
+
+
+
+
+
 We have the root cause now. This is **not an RKE2 problem yet**; it is node-to-node networking.
 
 Both `master02` and `master03` are trying to join:
