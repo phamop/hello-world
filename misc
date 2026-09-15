@@ -1,55 +1,192 @@
+Your control plane is in good shape now. All three etcd pods, API servers, controller managers, and schedulers are running. The `NotReady` status is exactly because `cni: none` is still configured, so Cilium is the next functional dependency.
+
+The `etcdctl` failure is separate. This part tells us what happened:
+
+```text
+/bin/sh: line 1: --endpoints=https://127.0.0.1:2379: No such file or directory
+```
+
+That means:
+
+```bash
+ETCDCTL=$(find /var/lib/rancher/rke2/data -type f -name etcdctl | head -1)
+```
+
+returned **nothing**, so the shell effectively tried to execute:
+
+```bash
+--endpoints=https://127.0.0.1:2379
+```
+
+### First, confirm whether `etcdctl` exists on the host
+
+Run:
+
+```bash
 ansible master01 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
-master01 | CHANGED | rc=0 >>
-NAME       STATUS     ROLES                AGE     VERSION          INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                            KERNEL-VERSION            CONTAINER-RUNTIME
-master01   NotReady   control-plane,etcd   45m     v1.35.3+rke2r1   10.174.161.22   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
-master02   NotReady   control-plane,etcd   4m34s   v1.35.3+rke2r1   10.174.161.23   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
-master03   NotReady   control-plane,etcd   4m15s   v1.35.3+rke2r1   10.174.161.24   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -a 'find /var/lib/rancher/rke2 -type f -name "etcdctl" -o -name "etcdctl*" 2>/dev/null'
+```
+
+Also:
+
+```bash
+ansible master01 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o jsonpath="{range .items[*]}{.metadata.name}{\" => \"}{range .status.conditions[?(@.type==\"Ready\")]}{.status}{\" : \"}{.reason}{\" : \"}{.message}{end}{\"\\n\"}{end}"'
-master01 | CHANGED | rc=0 >>
-master01 => False : KubeletNotReady : container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized
-master02 => False : KubeletNotReady : container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized
-master03 => False : KubeletNotReady : container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -a 'find /var/lib/rancher/rke2/data -type f -path "*/bin/*" | grep -E "/etcd|/etcdctl" || true'
+```
+
+If you get something like:
+
+```text
+/var/lib/rancher/rke2/data/<hash>/bin/etcdctl
+```
+
+then use that exact path.
+
+But newer RKE2 layouts do not always expose `etcdctl` directly on the host. In that case, use the running etcd process.
+
+### Reliable method: use the etcd process root
+
+First find the etcd PID:
+
+```bash
+ansible master01 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -n kube-system -o wide | egrep "etcd-|kube-apiserver|kube-controller|kube-scheduler"'
-master01 | CHANGED | rc=0 >>
-etcd-master01                                          1/1     Running     0             46m     10.174.161.22   master01   <none>           <none>
-etcd-master02                                          1/1     Running     0             5m24s   10.174.161.23   master02   <none>           <none>
-etcd-master03                                          1/1     Running     0             5m1s    10.174.161.24   master03   <none>           <none>
-kube-apiserver-master01                                1/1     Running     0             46m     10.174.161.22   master01   <none>           <none>
-kube-apiserver-master02                                1/1     Running     0             5m24s   10.174.161.23   master02   <none>           <none>
-kube-apiserver-master03                                1/1     Running     0             5m1s    10.174.161.24   master03   <none>           <none>
-kube-controller-manager-master01                       1/1     Running     0             46m     10.174.161.22   master01   <none>           <none>
-kube-controller-manager-master02                       1/1     Running     0             5m24s   10.174.161.23   master02   <none>           <none>
-kube-controller-manager-master03                       1/1     Running     0             5m1s    10.174.161.24   master03   <none>           <none>
-kube-scheduler-master01                                1/1     Running     0             46m     10.174.161.22   master01   <none>           <none>
-kube-scheduler-master02                                1/1     Running     0             5m24s   10.174.161.23   master02   <none>           <none>
-kube-scheduler-master03                                1/1     Running     0             5m1s    10.174.161.24   master03   <none>           <none>
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -a 'pgrep -af "etcd"'
+```
+
+Then locate `etcdctl` inside the container filesystem:
+
+```bash
+ansible master01 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'ETCDCTL=$(find /var/lib/rancher/rke2/data -type f -name etcdctl | head -1); \
-  export ETCDCTL_API=3; \
-  $ETCDCTL \
+  -a '
+PID=$(pgrep -f "/usr/local/bin/etcd" | head -1)
+echo "ETCD PID=$PID"
+find /proc/$PID/root -type f -name etcdctl 2>/dev/null | head
+'
+```
+
+You will probably see something similar to:
+
+```text
+/proc/75133/root/usr/local/bin/etcdctl
+```
+
+Then run:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '
+PID=$(pgrep -f "/usr/local/bin/etcd" | head -1)
+ETCDCTL=/proc/$PID/root/usr/local/bin/etcdctl
+
+$ETCDCTL \
   --endpoints=https://127.0.0.1:2379 \
   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
-  member list -w table'
-master01 | FAILED | rc=127 >>
-/bin/sh: line 1: --endpoints=https://127.0.0.1:2379: No such file or directorynon-zero return code
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+  member list -w table
+'
+```
+
+You want three rows, corresponding to:
+
+```text
+master01
+master02
+master03
+```
+
+Then check endpoint health:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '
+PID=$(pgrep -f "/usr/local/bin/etcd" | head -1)
+ETCDCTL=/proc/$PID/root/usr/local/bin/etcdctl
+
+$ETCDCTL \
+  --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379 \
+  --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
+  --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
+  --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
+  endpoint health -w table
+'
+```
+
+And finally:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '
+PID=$(pgrep -f "/usr/local/bin/etcd" | head -1)
+ETCDCTL=/proc/$PID/root/usr/local/bin/etcdctl
+
+$ETCDCTL \
+  --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379 \
+  --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
+  --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
+  --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
+  endpoint status -w table
+'
+```
+
+You want:
+
+```text
+3 endpoints
+all healthy
+one leader
+two followers
+same/similar raft index
+no learner stuck
+no errors
+```
+
+At that point I would consider the **RKE2 control-plane bootstrap complete**.
+
+Then proceed immediately to Cilium, because your current node readiness output already proves the only blocker is:
+
+```text
+NetworkPluginNotReady
+cni plugin not initialized
+```
+
+So the sequence is now:
+
+```text
+3 masters registered       ✓
+3 etcd pods running        ✓
+3 API servers running      ✓
+3 schedulers running       ✓
+3 controller managers      ✓
+etcd member health         ← verify now
+Cilium                     ← next
+nodes Ready
+CoreDNS Running
+workers join
+```
+
+Do not troubleshoot `NotReady` any further before installing Cilium; Kubernetes is telling you exactly what it is waiting for.
 
 
 
