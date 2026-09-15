@@ -1,3 +1,226 @@
+That result makes sense: `rke2_install_script_dir` is probably defined inside the role’s `defaults/main.yml` or `vars/main.yml`, so an ad-hoc `ansible ... -m debug` command will not automatically load the role variables.
+
+The more important finding is that the **entire `lablabs.rke2` role has CRLF line endings**. I would fix that first, then inspect exactly where `rke2_install_script_dir` is defined.
+
+Run:
+
+```bash
+grep -Rni "rke2_install_script_dir" \
+  roles/lablabs.rke2/defaults \
+  roles/lablabs.rke2/vars \
+  roles/lablabs.rke2/tasks \
+  inventory \
+  playbooks | cat -A
+```
+
+Also inspect the exact failing section:
+
+```bash
+sed -n '245,285p' roles/lablabs.rke2/tasks/rke2.yml | cat -A
+```
+
+And inspect the relevant defaults:
+
+```bash
+grep -n -A3 -B3 "rke2_install_script_dir" \
+  roles/lablabs.rke2/defaults/main.yml | cat -A
+```
+
+```bash
+grep -n -A3 -B3 "rke2_install_script_dir" \
+  roles/lablabs.rke2/vars/main.yml | cat -A
+```
+
+I expect you'll find something like:
+
+```yaml
+rke2_install_script_dir: /var/tmp
+```
+
+### Fix CRLF across the role
+
+Since your `grep -RIl $'\r'` output shows CRLF almost everywhere, convert the role in one shot:
+
+```bash
+find roles/lablabs.rke2 \
+  -type f \
+  \( -name "*.yml" -o -name "*.yaml" -o -name "*.j2" -o -name "*.sh" -o -name "*.md" -o -name "*.rst" \) \
+  -exec sed -i 's/\r$//' {} +
+```
+
+Then verify:
+
+```bash
+grep -RIl $'\r' roles/lablabs.rke2
+```
+
+It should return **nothing**.
+
+Then check `rke2.yml`:
+
+```bash
+grep -n "rke2.sh" roles/lablabs.rke2/tasks/rke2.yml | cat -A
+```
+
+You want:
+
+```text
+cmd: "{{ rke2_install_script_dir }}/rke2.sh"$
+```
+
+not:
+
+```text
+cmd: "{{ rke2_install_script_dir }}/rke2.sh"^M$
+```
+
+### Check the actual script directory variable through the playbook
+
+Because the variable belongs to the role, the cleanest way to see its value is temporarily add a debug immediately before the failing task in:
+
+```text
+roles/lablabs.rke2/tasks/rke2.yml
+```
+
+Just before:
+
+```yaml
+- name: Run RKE2 install script with airgap variables
+```
+
+add:
+
+```yaml
+- name: Debug RKE2 install script path
+  ansible.builtin.debug:
+    msg:
+      - "DIR=[{{ rke2_install_script_dir }}]"
+      - "SCRIPT=[{{ rke2_install_script_dir }}/rke2.sh]"
+```
+
+Then rerun your playbook with:
+
+```bash
+ansible-playbook \
+  -i inventory/dev/hosts.ini \
+  <your-playbook>.yml \
+  --limit master01
+```
+
+You should see:
+
+```text
+DIR=[/var/tmp]
+SCRIPT=[/var/tmp/rke2.sh]
+```
+
+If instead you see:
+
+```text
+DIR=[/var/tmp                              ]
+```
+
+then the variable itself has trailing spaces.
+
+### Also inspect the remote file
+
+Run:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'ls -lb /var/tmp/rke2.sh; file /var/tmp/rke2.sh'
+```
+
+Then:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'head -3 /var/tmp/rke2.sh | cat -A'
+```
+
+The first line should look like:
+
+```text
+#!/bin/sh$
+```
+
+or:
+
+```text
+#!/usr/bin/env bash$
+```
+
+and not:
+
+```text
+#!/bin/sh^M$
+```
+
+### One thing I would change in the task itself
+
+Once you clean the source files, make the execution task defensive.
+
+If you currently have:
+
+```yaml
+- name: Run RKE2 install script with airgap variables
+  ansible.builtin.command:
+    cmd: "{{ rke2_install_script_dir }}/rke2.sh"
+```
+
+change it to:
+
+```yaml
+- name: Run RKE2 install script with airgap variables
+  ansible.builtin.command:
+    cmd: "{{ rke2_install_script_dir | trim }}/rke2.sh"
+```
+
+That protects you against accidental whitespace in the directory variable.
+
+Even better, define a normalized variable:
+
+```yaml
+rke2_install_script_dir: "/var/tmp"
+```
+
+and ensure there's no whitespace embedded in the YAML value.
+
+The next thing I need to see is the output of:
+
+```bash
+grep -Rni "rke2_install_script_dir" roles/lablabs.rke2 | cat -A
+```
+
+and:
+
+```bash
+sed -n '255,280p' roles/lablabs.rke2/tasks/rke2.yml | cat -A
+```
+
+Those will likely expose exactly where `/var/tmp/rke2.sh` is acquiring those trailing spaces.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###############
 apiVersion: v1
 kind: Service
 metadata:
