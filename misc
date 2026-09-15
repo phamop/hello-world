@@ -1,3 +1,47 @@
+ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpo                                                                                                      ints=https://127.0.0.1:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/va                                                                                                      r/lib/rancher/rke2/server/tls/etcd/server-client.key   member list -w table
++------------------+---------+-------------------+----------------------------+----------------------------+------------+
+|        ID        | STATUS  |       NAME        |         PEER ADDRS         |        CLIENT ADDRS        | IS LEARNER |
++------------------+---------+-------------------+----------------------------+----------------------------+------------+
+|  87c52ea3defb122 | started | master03-aefedb0f | https://10.174.161.24:2380 | https://10.174.161.24:2379 |      false |
+| a9989cc3cfb736e5 | started | master01-5b85ac7a | https://10.174.161.22:2380 | https://10.174.161.22:2379 |      false |
+| b21465b2fef56fb4 | started | master02-05f51475 | https://10.174.161.23:2380 | https://10.174.161.23:2379 |      false |
++------------------+---------+-------------------+----------------------------+----------------------------+------------+
+ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl /var/lib/                                                                                                      rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl^C
+ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl \
+>   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379 \
+>   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
+>   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
+>   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
+>   endpoint status -w table
++----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+-                                                                                                      -----------+--------------------+--------+--------------------------+-------------------+
+|          ENDPOINT          |        ID        | VERSION | STORAGE VERSION | DB SIZE | IN USE | PERCENTAGE NOT IN USE | QUOTA  | IS LEADER | IS LEARNER | RAFT TERM |                                                                                                       RAFT INDEX | RAFT APPLIED INDEX | ERRORS | DOWNGRADE TARGET VERSION | DOWNGRADE ENABLED |
++----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+-                                                                                                      -----------+--------------------+--------+--------------------------+-------------------+
+| https://10.174.161.22:2379 | a9989cc3cfb736e5 |   3.6.7 |           3.6.0 |  4.5 MB | 2.8 MB |                   39% | 2.1 GB |      true |      false |         2 |                                                                                                            12114 |              12114 |        |                          |             false |
+| https://10.174.161.23:2379 | b21465b2fef56fb4 |   3.6.7 |           3.6.0 |  4.3 MB | 2.7 MB |                   36% | 2.1 GB |     false |      false |         2 |                                                                                                            12114 |              12114 |        |                          |             false |
+| https://10.174.161.24:2379 |  87c52ea3defb122 |   3.6.7 |           3.6.0 |  4.2 MB | 2.7 MB |                   36% | 2.1 GB |     false |      false |         2 |                                                                                                            12114 |              12114 |        |                          |             false |
++----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+-                                                                                                      -----------+--------------------+--------+--------------------------+-------------------+
+ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key   endpoint status -w table
++----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+------------+--------------------+--------+--------------------------+-------------------+
+|          ENDPOINT          |        ID        | VERSION | STORAGE VERSION | DB SIZE | IN USE | PERCENTAGE NOT IN USE | QUOTA  | IS LEADER | IS LEARNER | RAFT TERM | RAFT INDEX | RAFT APPLIED INDEX | ERRORS | DOWNGRADE TARGET VERSION | DOWNGRADE ENABLED |
++----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+------------+--------------------+--------+--------------------------+-------------------+
+| https://10.174.161.22:2379 | a9989cc3cfb736e5 |   3.6.7 |           3.6.0 |  4.5 MB | 2.8 MB |                   39% | 2.1 GB |      true |      false |         2 |      12146 |              12146 |        |                          |             false |
+| https://10.174.161.23:2379 | b21465b2fef56fb4 |   3.6.7 |           3.6.0 |  4.3 MB | 2.8 MB |                   36% | 2.1 GB |     false |      false |         2 |      12146 |              12146 |        |                          |             false |
+| https://10.174.161.24:2379 |  87c52ea3defb122 |   3.6.7 |           3.6.0 |  4.2 MB | 2.7 MB |                   36% | 2.1 GB |     false |      false |         2 |      12146 |              12146 |        |                          |             false |
++----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+------------+--------------------+--------+--------------------------+-------------------+
+ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp #
+
+
+
+
+
+
+
+
+
+
+
+
+
 Your control plane is in good shape now. All three etcd pods, API servers, controller managers, and schedulers are running. The `NotReady` status is exactly because `cni: none` is still configured, so Cilium is the next functional dependency.
 
 The `etcdctl` failure is separate. This part tells us what happened:
