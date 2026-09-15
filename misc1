@@ -1,543 +1,440 @@
- ansible-playbook   -i inventory/dev/hosts.ini   playbooks/deploy-rke2.yml   --limit=masters
-
-PLAY [Deploy RKE2] ******************************************************************************************************************************************************
-
-TASK [Gathering Facts] **************************************************************************************************************************************************
-ok: [master02]
-ok: [master03]
-ok: [master01]
-
-TASK [lablabs.rke2 : Validating arguments against arg spec 'main' - This is the main entrypoint for the lablabs.rke2 role.] *********************************************
-ok: [master01]
-ok: [master02]
-ok: [master03]
-
-TASK [lablabs.rke2 : Install Keepalived when HA mode is enabled] ********************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Download and install RKE2 v1.35.3+rke2r1] **********************************************************************************************************
-included: /home/ooridota/nonprd/roles/lablabs.rke2/tasks/rke2.yml for master01, master02, master03
-
-TASK [lablabs.rke2 : Download RKE2 installation script] *****************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy local RKE2 installation script] ***************************************************************************************************************
-ok: [master01]
-changed: [master03]
-changed: [master02]
-
-TASK [lablabs.rke2 : Create RKE2 artifacts folder] **********************************************************************************************************************
-changed: [master02]
-changed: [master03]
-ok: [master01]
-
-TASK [lablabs.rke2 : Download sha256 checksum file ( airgap mode )] *****************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Download RKE2 artifacts and compare with checksums ( airgap mode )] ********************************************************************************
-skipping: [master02] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master01] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master02] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master02]
-skipping: [master01] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master01]
-skipping: [master03] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master03] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master03]
-
-TASK [lablabs.rke2 : Download RKE2 install script ( airgap mode )] ******************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy local RKE2 artifacts] *************************************************************************************************************************
-ok: [master01] => (item=sha256sum-amd64.txt)
-changed: [master03] => (item=sha256sum-amd64.txt)
-changed: [master02] => (item=sha256sum-amd64.txt)
-ok: [master01] => (item=rke2.linux-amd64.tar.gz)
-changed: [master02] => (item=rke2.linux-amd64.tar.gz)
-changed: [master03] => (item=rke2.linux-amd64.tar.gz)
-ok: [master01] => (item=rke2-images.linux-amd64.tar.zst)
-changed: [master02] => (item=rke2-images.linux-amd64.tar.zst)
-changed: [master03] => (item=rke2-images.linux-amd64.tar.zst)
-
-TASK [lablabs.rke2 : Create additional images tarballs folder] **********************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy additional tarball images RKE2 components] ****************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Register artifacts] ********************************************************************************************************************************
-skipping: [master01] => (item=sha256sum-amd64.txt)
-skipping: [master01] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master01] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master02] => (item=sha256sum-amd64.txt)
-skipping: [master01]
-skipping: [master02] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master03] => (item=sha256sum-amd64.txt)
-skipping: [master02] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master02]
-skipping: [master03] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master03] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master03]
-
-TASK [lablabs.rke2 : Register install script] ***************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Register artifact facts] ***************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Make the artifacts read-only] **********************************************************************************************************************
-skipping: [master01] => (item=sha256sum-amd64.txt)
-skipping: [master01] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master01] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master02] => (item=sha256sum-amd64.txt)
-skipping: [master01]
-skipping: [master02] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master02] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master02]
-skipping: [master03] => (item=sha256sum-amd64.txt)
-skipping: [master03] => (item=rke2.linux-amd64.tar.gz)
-skipping: [master03] => (item=rke2-images.linux-amd64.tar.zst)
-skipping: [master03]
-
-TASK [lablabs.rke2 : Make the install script executable.] ***************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Install script must be executable] *****************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Populate service facts] ****************************************************************************************************************************
-ok: [master02]
-ok: [master03]
-ok: [master01]
-
-TASK [lablabs.rke2 : Get stats of the FS object] ************************************************************************************************************************
-ok: [master02]
-ok: [master03]
-ok: [master01]
-
-TASK [lablabs.rke2 : Check if separate partition] ***********************************************************************************************************************
-ok: [master02]
-ok: [master03]
-ok: [master01]
-
-TASK [lablabs.rke2 : Set RKE2 bin path] *********************************************************************************************************************************
-ok: [master01]
-ok: [master02]
-ok: [master03]
-
-TASK [lablabs.rke2 : Check RKE2 version] ********************************************************************************************************************************
-ok: [master02]
-ok: [master03]
-ok: [master01]
-
-TASK [lablabs.rke2 : Set RKE2 versions] *********************************************************************************************************************************
-ok: [master01]
-ok: [master02]
-ok: [master03]
-
-TASK [lablabs.rke2 : Prevent accidental RKE2 downgrade] *****************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Run RKE2 install script with airgap variables] *****************************************************************************************************
-skipping: [master01]
-ok: [master02]
-ok: [master03]
-
-TASK [lablabs.rke2 : Run RKE2 install script without airgap variables] **************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy Custom Manifests] *****************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy Static Pods] **********************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy RKE2 environment file] ************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : CIS Hardening] *************************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Find Active Server] ********************************************************************************************************************************
-included: /home/ooridota/nonprd/roles/lablabs.rke2/tasks/find_active_server.yml for master01, master02, master03
-
-TASK [lablabs.rke2 : Populate services facts] ***************************************************************************************************************************
-ok: [master03]
-ok: [master01]
-ok: [master02]
-
-TASK [lablabs.rke2 : Set the Active Server variable] ********************************************************************************************************************
-ok: [master01] => (item=master01)
-skipping: [master02] => (item=master01)
-ok: [master01 -> master02(10.174.161.23)] => (item=master02)
-skipping: [master02] => (item=master02)
-skipping: [master03] => (item=master01)
-skipping: [master02] => (item=master03)
-ok: [master01 -> master03(10.174.161.24)] => (item=master03)
-skipping: [master03] => (item=master02)
-skipping: [master02]
-skipping: [master03] => (item=master03)
-skipping: [master03]
-
-TASK [lablabs.rke2 : Enable IPVS kernel module] *************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy kube-vip manifests to the masternode] *********************************************************************************************************
-skipping: [master02]
-skipping: [master01]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Fail if rke2_ingress_controller is not string or list] *********************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy ingress-nginx manifests to the masternode] ****************************************************************************************************
-skipping: [master02]
-skipping: [master01]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy traefik manifests to the masternode] **********************************************************************************************************
-skipping: [master02]
-skipping: [master03]
-skipping: [master01]
-
-TASK [lablabs.rke2 : Prepare very first server node in the cluster] *****************************************************************************************************
-skipping: [master02]
-skipping: [master01]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Restore etcd specific tasks] ***********************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Download kubeconfig to ansible localhost] **********************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Prepare and join remaining nodes of the cluster] ***************************************************************************************************
-included: /home/ooridota/nonprd/roles/lablabs.rke2/tasks/remaining_nodes.yml for master01, master02, master03
-
-TASK [lablabs.rke2 : Create the RKE2 config dir] ************************************************************************************************************************
-changed: [master02]
-ok: [master01]
-changed: [master03]
-
-TASK [lablabs.rke2 : Set server taints] *********************************************************************************************************************************
-ok: [master01]
-ok: [master02]
-ok: [master03]
-
-TASK [lablabs.rke2 : Set agent taints] **********************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy RKE2 config] **********************************************************************************************************************************
-ok: [master01]
-changed: [master03]
-changed: [master02]
-
-TASK [lablabs.rke2 : Copy kubelet config] *******************************************************************************************************************************
-skipping: [master01]
-skipping: [master02]
-skipping: [master03]
-
-TASK [lablabs.rke2 : Copy Containerd Registry Configuration file] *******************************************************************************************************
-ok: [master01]
-changed: [master03]
-changed: [master02]
-
-TASK [lablabs.rke2 : Start RKE2 service on the rest of the nodes] *******************************************************************************************************
-ok: [master01]
-FAILED - RETRYING: [master03]: Start RKE2 service on the rest of the nodes (10 retries left).
-FAILED - RETRYING: [master02]: Start RKE2 service on the rest of the nodes (10 retries left).
-ok: [master03]
-ok: [master02]
-
-TASK [lablabs.rke2 : Mask other RKE2 service on the rest of the nodes] **************************************************************************************************
-ok: [master02] => (item=agent)
-ok: [master01] => (item=agent)
-ok: [master03] => (item=agent)
-
-TASK [lablabs.rke2 : Wait for remaining nodes to be ready - no CNI] *****************************************************************************************************
-skipping: [master02] => (item=master01)
-skipping: [master02] => (item=master02)
-skipping: [master02] => (item=master03)
-skipping: [master02]
-skipping: [master03] => (item=master01)
-skipping: [master03] => (item=master02)
-skipping: [master03] => (item=master03)
-skipping: [master03]
-ok: [master01] => (item=master01)
-FAILED - RETRYING: [master01]: Wait for remaining nodes to be ready - no CNI (100 retries left).
-FAILED - RETRYING: [master01]: Wait for remaining nodes to be ready - no CNI (99 retries left).
-^C [ERROR]: User interrupted execution
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible masters -i inventory/dev/hosts.ini -m command -a 'systemctl status rke2-server'
-master01 | CHANGED | rc=0 >>
-● rke2-server.service - Rancher Kubernetes Engine v2 (server)
-     Loaded: loaded (/etc/systemd/system/rke2-server.service; enabled; preset: disabled)
-     Active: active (running) since Wed 2026-09-16 00:38:47 CEST; 6min ago
- Invocation: 55d7cec1631d4f6b86a19a60f0b7df8b
-       Docs: https://github.com/rancher/rke2#readme
-    Process: 75019 ExecCondition=/bin/sh -c if systemctl is-active --quiet rke2-agent.service; then echo "Error: rke2-agent is running!"; exit 1; fi (code=exited, status=0/SUCCESS)
-    Process: 75021 ExecStartPre=/sbin/modprobe br_netfilter (code=exited, status=0/SUCCESS)
-    Process: 75032 ExecStartPre=/sbin/modprobe overlay (code=exited, status=0/SUCCESS)
-   Main PID: 75035 (rke2)
-      Tasks: 112
-        CPU: 1min 13.755s
-     CGroup: /system.slice/rke2-server.service
-             ├─75035 "/opt/rke2/bin/rke2 server"
-             ├─75055 containerd -c /var/lib/rancher/rke2/agent/etc/containerd/config.toml
-             ├─75083 kubelet --volume-plugin-dir=/var/lib/kubelet/volumeplugins --file-check-frequency=5s --sync-frequency=30s --cloud-provider=external --config-dir=/var/lib/rancher/rke2/agent/etc/kubelet.conf.d --containerd=/run/k3s/containerd/containerd.sock --hostname-override=master01 --kubeconfig=/var/lib/rancher/rke2/agent/kubelet.kubeconfig --node-ip=10.174.161.22 --node-labels= --read-only-port=0
-             ├─75113 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id 8139e6198cb105fd7fcd5d0beee4f43e7b56e6830422844fe9587bcb0a9d5a7d -address /run/k3s/containerd/containerd.sock
-             ├─75133 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id a73f43d90a195e78d7557588dbef925a002c46ed9c8cf883bb42c57236c60253 -address /run/k3s/containerd/containerd.sock
-             ├─75265 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id 174552fe404ad98f5d2b39068494adcb399955b28f8919ea466448b062c14692 -address /run/k3s/containerd/containerd.sock
-             ├─75411 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id 9a3812309ae1f1422f7d45cda31c2db508e2878b60aff081f9e592868a90ac5a -address /run/k3s/containerd/containerd.sock
-             ├─75413 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id 76c58d93326b8111698958344f1f62cf8fc163f9795f8794574c018a1d15ecc3 -address /run/k3s/containerd/containerd.sock
-             └─75718 /var/lib/rancher/rke2/data/v1.35.3-rke2r1-c38fc38571d3/bin/containerd-shim-runc-v2 -namespace k8s.io -id e2fd91647ec3580562847f31cb6ddb9f5ed5ca0ce6fba1c0101ec717e8955edc -address /run/k3s/containerd/containerd.sock
-
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Adding node OwnerReference to node-password secret master01.node-password.rke2"
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Started tunnel to 10.174.161.22:9345"
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Stopped tunnel to 127.0.0.1:9345"
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Connecting to proxy" url="wss://10.174.161.22:9345/v1-rke2/connect"
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Proxy done" err="context canceled" url="wss://127.0.0.1:9345/v1-rke2/connect"
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="error in remotedialer server [400]: websocket: close 1006 (abnormal closure): unexpected EOF"
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Handling backend connection request [master01]"
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Connected to proxy" url="wss://10.174.161.22:9345/v1-rke2/connect"
-Sep 16 00:38:50 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:38:50+02:00" level=info msg="Remotedialer connected to proxy" url="wss://10.174.161.22:9345/v1-rke2/connect"
-Sep 16 00:39:03 ca-gat-dc1-nosd-stg-vm-pectr-01 rke2[75035]: time="2026-09-16T00:39:03+02:00" level=info msg="Adding node master01-5b85ac7a etcd status condition"
-master02 | FAILED | rc=3 >>
-● rke2-server.service - Rancher Kubernetes Engine v2 (server)
-     Loaded: loaded (/etc/systemd/system/rke2-server.service; enabled; preset: disabled)
-     Active: activating (auto-restart) (Result: exit-code) since Wed 2026-09-16 00:45:13 CEST; 403ms ago
- Invocation: 6d4bcf86920b4b728391b31ad587d20d
-       Docs: https://github.com/rancher/rke2#readme
-    Process: 63294 ExecCondition=/bin/sh -c if systemctl is-active --quiet rke2-agent.service; then echo "Error: rke2-agent is running!"; exit 1; fi (code=exited, status=0/SUCCESS)
-    Process: 63296 ExecStartPre=/sbin/modprobe br_netfilter (code=exited, status=0/SUCCESS)
-    Process: 63298 ExecStartPre=/sbin/modprobe overlay (code=exited, status=0/SUCCESS)
-    Process: 63301 ExecStart=/opt/rke2/bin/rke2 server (code=exited, status=1/FAILURE)
-    Process: 63315 ExecStopPost=/bin/sh -c systemd-cgls /system.slice/rke2-server.service | grep -Eo '[0-9]+ (containerd|kubelet)' | awk '{print $1}' | xargs -r kill (code=exited, status=0/SUCCESS)
-   Main PID: 63301 (code=exited, status=1/FAILURE)
-        CPU: 97msnon-zero return code
-master03 | FAILED | rc=3 >>
-● rke2-server.service - Rancher Kubernetes Engine v2 (server)
-     Loaded: loaded (/etc/systemd/system/rke2-server.service; enabled; preset: disabled)
-     Active: activating (auto-restart) (Result: exit-code) since Wed 2026-09-16 00:45:22 CEST; 418ms ago
- Invocation: dceb169ba9a44c72827e1bd05934ee8b
-       Docs: https://github.com/rancher/rke2#readme
-    Process: 63646 ExecCondition=/bin/sh -c if systemctl is-active --quiet rke2-agent.service; then echo "Error: rke2-agent is running!"; exit 1; fi (code=exited, status=0/SUCCESS)
-    Process: 63648 ExecStartPre=/sbin/modprobe br_netfilter (code=exited, status=0/SUCCESS)
-    Process: 63651 ExecStartPre=/sbin/modprobe overlay (code=exited, status=0/SUCCESS)
-    Process: 63653 ExecStart=/opt/rke2/bin/rke2 server (code=exited, status=1/FAILURE)
-    Process: 63668 ExecStopPost=/bin/sh -c systemd-cgls /system.slice/rke2-server.service | grep -Eo '[0-9]+ (containerd|kubelet)' | awk '{print $1}' | xargs -r kill (code=exited, status=0/SUCCESS)
-   Main PID: 63653 (code=exited, status=1/FAILURE)
-        CPU: 92msnon-zero return code
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+ ansible 'master02:master03' \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
-master01 | CHANGED | rc=0 >>
-NAME       STATUS     ROLES                AGE   VERSION          INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                            KERNEL-VERSION            CONTAINER-RUNTIME
-master01   NotReady   control-plane,etcd   13m   v1.35.3+rke2r1   10.174.161.22   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -a 'journalctl -u rke2-server -n 100 --no-pager'
+master02 | CHANGED | rc=0 >>
+Sep 16 01:03:36 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 219.
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69042]: time="2026-09-16T01:03:41+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69042]: time="2026-09-16T01:03:41+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69042]: time="2026-09-16T01:03:41+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69042]: time="2026-09-16T01:03:41+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 220.
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69189]: time="2026-09-16T01:03:46+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69189]: time="2026-09-16T01:03:46+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69189]: time="2026-09-16T01:03:46+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69189]: time="2026-09-16T01:03:46+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 221.
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69216]: time="2026-09-16T01:03:51+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69216]: time="2026-09-16T01:03:51+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69216]: time="2026-09-16T01:03:51+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69216]: time="2026-09-16T01:03:51+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 222.
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[70441]: time="2026-09-16T01:03:56+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[70441]: time="2026-09-16T01:03:56+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[70441]: time="2026-09-16T01:03:56+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[70441]: time="2026-09-16T01:03:56+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:01 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 223.
+Sep 16 01:04:01 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:01 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[71585]: time="2026-09-16T01:04:01+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:01 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[71585]: time="2026-09-16T01:04:01+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:01 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[71585]: time="2026-09-16T01:04:01+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:01 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[71585]: time="2026-09-16T01:04:01+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:01 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:02 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:02 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 224.
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72020]: time="2026-09-16T01:04:07+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72020]: time="2026-09-16T01:04:07+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72020]: time="2026-09-16T01:04:07+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72020]: time="2026-09-16T01:04:07+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 225.
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72046]: time="2026-09-16T01:04:12+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72046]: time="2026-09-16T01:04:12+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72046]: time="2026-09-16T01:04:12+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72046]: time="2026-09-16T01:04:12+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 226.
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72074]: time="2026-09-16T01:04:17+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72074]: time="2026-09-16T01:04:17+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72074]: time="2026-09-16T01:04:17+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72074]: time="2026-09-16T01:04:17+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:22 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 227.
+Sep 16 01:04:22 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:22 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72101]: time="2026-09-16T01:04:22+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:22 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72101]: time="2026-09-16T01:04:22+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:22 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72101]: time="2026-09-16T01:04:22+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:22 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72101]: time="2026-09-16T01:04:22+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:22 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:23 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:23 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 228.
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72128]: time="2026-09-16T01:04:28+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72128]: time="2026-09-16T01:04:28+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72128]: time="2026-09-16T01:04:28+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72128]: time="2026-09-16T01:04:28+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 229.
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72158]: time="2026-09-16T01:04:33+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72158]: time="2026-09-16T01:04:33+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72158]: time="2026-09-16T01:04:33+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72158]: time="2026-09-16T01:04:33+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+master03 | CHANGED | rc=0 >>
+Sep 16 01:03:44 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 219.
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69383]: time="2026-09-16T01:03:49+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69383]: time="2026-09-16T01:03:49+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69383]: time="2026-09-16T01:03:49+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69383]: time="2026-09-16T01:03:49+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 220.
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69527]: time="2026-09-16T01:03:55+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69527]: time="2026-09-16T01:03:55+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69527]: time="2026-09-16T01:03:55+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69527]: time="2026-09-16T01:03:55+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 221.
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69554]: time="2026-09-16T01:04:00+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69554]: time="2026-09-16T01:04:00+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69554]: time="2026-09-16T01:04:00+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69554]: time="2026-09-16T01:04:00+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 222.
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[70764]: time="2026-09-16T01:04:05+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[70764]: time="2026-09-16T01:04:05+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[70764]: time="2026-09-16T01:04:05+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[70764]: time="2026-09-16T01:04:05+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 223.
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[71900]: time="2026-09-16T01:04:10+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[71900]: time="2026-09-16T01:04:10+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[71900]: time="2026-09-16T01:04:10+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[71900]: time="2026-09-16T01:04:10+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 224.
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72355]: time="2026-09-16T01:04:15+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72355]: time="2026-09-16T01:04:15+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72355]: time="2026-09-16T01:04:15+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72355]: time="2026-09-16T01:04:15+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 225.
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72381]: time="2026-09-16T01:04:21+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72381]: time="2026-09-16T01:04:21+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72381]: time="2026-09-16T01:04:21+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72381]: time="2026-09-16T01:04:21+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 226.
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72407]: time="2026-09-16T01:04:26+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72407]: time="2026-09-16T01:04:26+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72407]: time="2026-09-16T01:04:26+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72407]: time="2026-09-16T01:04:26+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 227.
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72433]: time="2026-09-16T01:04:31+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72433]: time="2026-09-16T01:04:31+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72433]: time="2026-09-16T01:04:31+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72433]: time="2026-09-16T01:04:31+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 228.
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72459]: time="2026-09-16T01:04:36+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72459]: time="2026-09-16T01:04:36+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72459]: time="2026-09-16T01:04:36+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72459]: time="2026-09-16T01:04:36+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:41 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Scheduled restart job, restart counter is at 229.
+Sep 16 01:04:41 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Starting Rancher Kubernetes Engine v2 (server)...
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72488]: time="2026-09-16T01:04:42+02:00" level=warning msg="not running in CIS mode"
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72488]: time="2026-09-16T01:04:42+02:00" level=info msg="Applying Pod Security Admission Configuration"
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72488]: time="2026-09-16T01:04:42+02:00" level=info msg="Starting rke2 v1.35.3+rke2r1 (b3cd4c0c7425c25a7cff8e98861a513490c1707c)"
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72488]: time="2026-09-16T01:04:42+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Main process exited, code=exited, status=1/FAILURE
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible 'master02:master03' \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -A -o wide'
-master01 | CHANGED | rc=0 >>
-NAMESPACE     NAME                                                   READY   STATUS      RESTARTS      AGE   IP              NODE       NOMINATED NODE   READINESS GATES
-kube-system   cloud-controller-manager-master01                      1/1     Running     1 (14m ago)   14m   10.174.161.22   master01   <none>           <none>
-kube-system   etcd-master01                                          1/1     Running     0             14m   10.174.161.22   master01   <none>           <none>
-kube-system   helm-install-rke2-coredns-jksdl                        0/1     Completed   0             14m   10.174.161.22   master01   <none>           <none>
-kube-system   helm-install-rke2-ingress-nginx-l7lmn                  0/1     Pending     0             14m   <none>          <none>     <none>           <none>
-kube-system   helm-install-rke2-metrics-server-85drv                 0/1     Pending     0             14m   <none>          <none>     <none>           <none>
-kube-system   helm-install-rke2-runtimeclasses-x96h7                 0/1     Pending     0             14m   <none>          <none>     <none>           <none>
-kube-system   helm-install-rke2-snapshot-controller-crd-2v8cl        0/1     Pending     0             14m   <none>          <none>     <none>           <none>
-kube-system   helm-install-rke2-snapshot-controller-ztz8k            0/1     Pending     0             14m   <none>          <none>     <none>           <none>
-kube-system   kube-apiserver-master01                                1/1     Running     0             14m   10.174.161.22   master01   <none>           <none>
-kube-system   kube-controller-manager-master01                       1/1     Running     0             14m   10.174.161.22   master01   <none>           <none>
-kube-system   kube-proxy-master01                                    1/1     Running     0             14m   10.174.161.22   master01   <none>           <none>
-kube-system   kube-scheduler-master01                                1/1     Running     0             14m   10.174.161.22   master01   <none>           <none>
-kube-system   rke2-coredns-rke2-coredns-78c46898db-jd6xm             0/1     Pending     0             13m   <none>          <none>     <none>           <none>
-kube-system   rke2-coredns-rke2-coredns-autoscaler-f85f87746-5swrz   0/1     Pending     0             13m   <none>          <none>     <none>           <none>
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -a 'journalctl -u rke2-server --since "-20 min" --no-pager | egrep -i "fatal|error|failed|certificate|token|etcd|learner|9345|6443|x509|tls" | tail -100'
+master02 | CHANGED | rc=0 >>
+Sep 16 01:02:17 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:22 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68635]: time="2026-09-16T01:02:22+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:22 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:22 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:27 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68661]: time="2026-09-16T01:02:27+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:33 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68687]: time="2026-09-16T01:02:33+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:38 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68713]: time="2026-09-16T01:02:38+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:38 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:38 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:43 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68739]: time="2026-09-16T01:02:43+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:43 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:43 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:48 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68765]: time="2026-09-16T01:02:48+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:49 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:49 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:54 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68791]: time="2026-09-16T01:02:54+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:54 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:54 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:59 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68816]: time="2026-09-16T01:02:59+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:59 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:59 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:04 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68844]: time="2026-09-16T01:03:04+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:04 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:04 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:09 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68870]: time="2026-09-16T01:03:09+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:10 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:10 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:15 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68898]: time="2026-09-16T01:03:15+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:15 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:15 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:20 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68924]: time="2026-09-16T01:03:20+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:20 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:20 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:25 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68951]: time="2026-09-16T01:03:25+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:25 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:25 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:30 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[68977]: time="2026-09-16T01:03:30+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:31 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:31 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:36 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69004]: time="2026-09-16T01:03:36+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:36 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:36 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69042]: time="2026-09-16T01:03:41+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:41 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69189]: time="2026-09-16T01:03:46+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:46 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[69216]: time="2026-09-16T01:03:51+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:51 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[70441]: time="2026-09-16T01:03:56+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:56 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:01 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[71585]: time="2026-09-16T01:04:01+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:02 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:02 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72020]: time="2026-09-16T01:04:07+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:07 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72046]: time="2026-09-16T01:04:12+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:12 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72074]: time="2026-09-16T01:04:17+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:17 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:22 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72101]: time="2026-09-16T01:04:22+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:23 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:23 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72128]: time="2026-09-16T01:04:28+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:28 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72158]: time="2026-09-16T01:04:33+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:33 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:38 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72318]: time="2026-09-16T01:04:38+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:38 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:38 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:44 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72344]: time="2026-09-16T01:04:44+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:44 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:44 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:49 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72370]: time="2026-09-16T01:04:49+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:49 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:49 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:54 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72396]: time="2026-09-16T01:04:54+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:54 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:54 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:59 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72422]: time="2026-09-16T01:04:59+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:59 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:59 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:05:04 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72451]: time="2026-09-16T01:05:04+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:05:05 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:05:05 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:05:10 ca-gat-dc1-nosd-stg-vm-pectr-02 rke2[72480]: time="2026-09-16T01:05:10+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:05:10 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:05:10 ca-gat-dc1-nosd-stg-vm-pectr-02 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+master03 | CHANGED | rc=0 >>
+Sep 16 01:02:26 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:31 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[68974]: time="2026-09-16T01:02:31+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:36 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69000]: time="2026-09-16T01:02:36+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:41 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69025]: time="2026-09-16T01:02:41+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:41 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:41 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:47 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69053]: time="2026-09-16T01:02:47+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:47 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:47 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:52 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69079]: time="2026-09-16T01:02:52+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:52 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:52 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:02:57 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69105]: time="2026-09-16T01:02:57+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:02:57 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:02:57 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:02 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69130]: time="2026-09-16T01:03:02+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:02 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:02 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:08 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69157]: time="2026-09-16T01:03:08+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:08 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:08 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:13 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69183]: time="2026-09-16T01:03:13+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:13 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:13 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:18 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69209]: time="2026-09-16T01:03:18+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:18 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:18 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:23 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69235]: time="2026-09-16T01:03:23+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:23 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:23 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:29 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69263]: time="2026-09-16T01:03:29+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:29 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:29 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:34 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69288]: time="2026-09-16T01:03:34+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:34 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:34 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:39 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69317]: time="2026-09-16T01:03:39+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:39 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:39 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:44 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69342]: time="2026-09-16T01:03:44+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:44 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:44 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69383]: time="2026-09-16T01:03:49+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:49 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69527]: time="2026-09-16T01:03:55+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:03:55 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[69554]: time="2026-09-16T01:04:00+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:00 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[70764]: time="2026-09-16T01:04:05+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:05 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[71900]: time="2026-09-16T01:04:10+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:10 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72355]: time="2026-09-16T01:04:15+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:15 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72381]: time="2026-09-16T01:04:21+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:21 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72407]: time="2026-09-16T01:04:26+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:26 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72433]: time="2026-09-16T01:04:31+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:31 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72459]: time="2026-09-16T01:04:36+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:36 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72488]: time="2026-09-16T01:04:42+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:42 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:47 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72650]: time="2026-09-16T01:04:47+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:47 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:47 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:52 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72677]: time="2026-09-16T01:04:52+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:52 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:52 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:04:57 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72704]: time="2026-09-16T01:04:57+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:04:57 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:04:57 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:05:03 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72730]: time="2026-09-16T01:05:03+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:05:03 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:05:03 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:05:08 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72756]: time="2026-09-16T01:05:08+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:05:08 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:05:08 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:05:13 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72785]: time="2026-09-16T01:05:13+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:05:13 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:05:13 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+Sep 16 01:05:18 ca-gat-dc1-nosd-stg-vm-pectr-03 rke2[72813]: time="2026-09-16T01:05:18+02:00" level=fatal msg="Error: preparing server: failed to bootstrap cluster data: failed to check if bootstrap data has been initialized: failed to validate token: failed to get CA certs: Get \"https://10.174.161.22:9345/cacerts\": dial tcp 10.174.161.22:9345: connect: no route to host"
+Sep 16 01:05:18 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: rke2-server.service: Failed with result 'exit-code'.
+Sep 16 01:05:18 ca-gat-dc1-nosd-stg-vm-pectr-03 systemd[1]: Failed to start Rancher Kubernetes Engine v2 (server).
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible masters \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml describe node master01'
-master01 | CHANGED | rc=0 >>
-Name:               master01
-Roles:              control-plane,etcd
-Labels:             beta.kubernetes.io/arch=amd64
-                    beta.kubernetes.io/instance-type=rke2
-                    beta.kubernetes.io/os=linux
-                    kubernetes.io/arch=amd64
-                    kubernetes.io/hostname=master01
-                    kubernetes.io/os=linux
-                    node-role.kubernetes.io/control-plane=true
-                    node-role.kubernetes.io/etcd=true
-                    node.kubernetes.io/instance-type=rke2
-Annotations:        alpha.kubernetes.io/provided-node-ip: 10.174.161.22
-                    etcd.rke2.cattle.io/local-snapshots-timestamp: 2026-09-16T00:49:09+02:00
-                    etcd.rke2.cattle.io/node-address: 10.174.161.22
-                    etcd.rke2.cattle.io/node-name: master01-5b85ac7a
-                    node.alpha.kubernetes.io/ttl: 0
-                    rke2.io/encryption-config-hash: start-f047cde5ee3da354f93480dee3d2cc6c6e53dc2fe4843015d09c9a6babb71905
-                    rke2.io/hostname: ca-gat-dc1-nosd-stg-vm-pectr-01
-                    rke2.io/internal-ip: 10.174.161.22
-                    rke2.io/node-args:
-                      ["server","--token","********","--data-dir","/var/lib/rancher/rke2","--cni","none","--tls-san","cluster.local","--tls-san","10.174.161.22"...
-                    rke2.io/node-config-hash: UWIOL6ZKU343M62LZEBLZNAK77LWM3DQC6TIHOHVLQDL7V2ZVUCA====
-                    rke2.io/node-env: {}
-                    volumes.kubernetes.io/controller-managed-attach-detach: true
-CreationTimestamp:  Wed, 16 Sep 2026 00:38:44 +0200
-Taints:             node.kubernetes.io/not-ready:NoSchedule
-Unschedulable:      false
-Lease:
-  HolderIdentity:  master01
-  AcquireTime:     <unset>
-  RenewTime:       Wed, 16 Sep 2026 00:53:22 +0200
-Conditions:
-  Type             Status  LastHeartbeatTime                 LastTransitionTime                Reason                       Message
-  ----             ------  -----------------                 ------------------                ------                       -------
-  EtcdIsVoter      True    Wed, 16 Sep 2026 00:49:03 +0200   Wed, 16 Sep 2026 00:39:03 +0200   MemberNotLearner             Node is a voting member of the etcd cluster
-  MemoryPressure   False   Wed, 16 Sep 2026 00:53:10 +0200   Wed, 16 Sep 2026 00:38:44 +0200   KubeletHasSufficientMemory   kubelet has sufficient memory available
-  DiskPressure     False   Wed, 16 Sep 2026 00:53:10 +0200   Wed, 16 Sep 2026 00:38:44 +0200   KubeletHasNoDiskPressure     kubelet has no disk pressure
-  PIDPressure      False   Wed, 16 Sep 2026 00:53:10 +0200   Wed, 16 Sep 2026 00:38:44 +0200   KubeletHasSufficientPID      kubelet has sufficient PID available
-  Ready            False   Wed, 16 Sep 2026 00:53:10 +0200   Wed, 16 Sep 2026 00:38:44 +0200   KubeletNotReady              container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized
-Addresses:
-  InternalIP:  10.174.161.22
-  Hostname:    ca-gat-dc1-nosd-stg-vm-pectr-01
-Capacity:
-  cpu:                8
-  ephemeral-storage:  276345Mi
-  hugepages-1Gi:      0
-  hugepages-2Mi:      0
-  memory:             16366180Ki
-  pods:               110
-Allocatable:
-  cpu:                8
-  ephemeral-storage:  275280297769
-  hugepages-1Gi:      0
-  hugepages-2Mi:      0
-  memory:             16366180Ki
-  pods:               110
-System Info:
-  Machine ID:                 90b4c10172d94c15afe4745945d9fd7a
-  System UUID:                f7d8cab5-d148-40c4-a4c2-bc7b4208cca8
-  Boot ID:                    50e26a19-64ae-44e0-bbd6-f92652974adb
-  Kernel Version:             6.12.0-160000.6-default
-  OS Image:                   SUSE Linux Enterprise Server 16.0
-  Operating System:           linux
-  Architecture:               amd64
-  Container Runtime Version:  containerd://2.2.2-k3s1
-  Kubelet Version:            v1.35.3+rke2r1
-  Kube-Proxy Version:
-PodCIDR:                      10.42.0.0/24
-PodCIDRs:                     10.42.0.0/24
-ProviderID:                   rke2://master01
-Non-terminated Pods:          (6 in total)
-  Namespace                   Name                                 CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age
-  ---------                   ----                                 ------------  ----------  ---------------  -------------  ---
-  kube-system                 cloud-controller-manager-master01    100m (1%)     0 (0%)      128Mi (0%)       0 (0%)         14m
-  kube-system                 etcd-master01                        200m (2%)     0 (0%)      512Mi (3%)       0 (0%)         14m
-  kube-system                 kube-apiserver-master01              250m (3%)     0 (0%)      1Gi (6%)         0 (0%)         14m
-  kube-system                 kube-controller-manager-master01     200m (2%)     0 (0%)      256Mi (1%)       0 (0%)         14m
-  kube-system                 kube-proxy-master01                  250m (3%)     0 (0%)      128Mi (0%)       0 (0%)         14m
-  kube-system                 kube-scheduler-master01              100m (1%)     0 (0%)      128Mi (0%)       0 (0%)         14m
-Allocated resources:
-  (Total limits may be over 100 percent, i.e., overcommitted.)
-  Resource           Requests      Limits
-  --------           --------      ------
-  cpu                1100m (13%)   0 (0%)
-  memory             2176Mi (13%)  0 (0%)
-  ephemeral-storage  0 (0%)        0 (0%)
-  hugepages-1Gi      0 (0%)        0 (0%)
-  hugepages-2Mi      0 (0%)        0 (0%)
-Events:
-  Type    Reason                          Age   From                   Message
-  ----    ------                          ----  ----                   -------
-  Normal  CertificateExpirationOK         14m   rke2-cert-monitor      Node and Certificate Authority certificates managed by rke2 are OK
-  Normal  Synced                          14m   cloud-node-controller  Node synced successfully
-  Normal  RegisteredNode                  14m   node-controller        Node master01 event: Registered Node master01 in Controller
-  Normal  NodePasswordValidationComplete  14m   rke2-supervisor        Deferred node password secret validation complete
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get node master01 -o jsonpath="{range .status.conditions[*]}{.type}{\"=\"}{.status}{\" reason=\"}{.reason}{\" message=\"}{.message}{\"\\n\"}{end}"'
-```
-master01 | CHANGED | rc=0 >>
-EtcdIsVoter=True reason=MemberNotLearner message=Node is a voting member of the etcd cluster
-MemoryPressure=False reason=KubeletHasSufficientMemory message=kubelet has sufficient memory available
-DiskPressure=False reason=KubeletHasNoDiskPressure message=kubelet has no disk pressure
-PIDPressure=False reason=KubeletHasSufficientPID message=kubelet has sufficient PID available
-Ready=False reason=KubeletNotReady message=container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized
-> ^C
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get node master01 -o jsonpath="{range .status.conditions[*]}{.type}{\"=\"}{.status}{\" reason=\"}{.reason}{\" message=\"}{.message}{\"\\n\"}{end}"'
-master01 | CHANGED | rc=0 >>
-EtcdIsVoter=True reason=MemberNotLearner message=Node is a voting member of the etcd cluster
-MemoryPressure=False reason=KubeletHasSufficientMemory message=kubelet has sufficient memory available
-DiskPressure=False reason=KubeletHasNoDiskPressure message=kubelet has no disk pressure
-PIDPressure=False reason=KubeletHasSufficientPID message=kubelet has sufficient PID available
-Ready=False reason=KubeletNotReady message=container runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o name'
-master01 | CHANGED | rc=0 >>
-node/master01
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'cat /etc/rancher/rke2/config.yaml'
-master01 | CHANGED | rc=0 >>
+  -a 'echo "=== $(hostname) ==="; cat /etc/rancher/rke2/config.yaml'
+master02 | CHANGED | rc=0 >>
+=== ca-gat-dc1-nosd-stg-vm-pectr-02 ===
 server: https://10.174.161.22:9345
-token: REDACTED
+token: 
+data-dir: /var/lib/rancher/rke2
+cni: none
+tls-san:
+  - cluster.local
+  - 10.174.161.22
+snapshotter: overlayfs
+node-name: master02
+cluster-cidr: "10.42.0.0/16"
+service-cidr: "10.43.0.0/16"
+ingress-controller: ingress-nginx
+master01 | CHANGED | rc=0 >>
+=== ca-gat-dc1-nosd-stg-vm-pectr-01 ===
+server: https://10.174.161.22:9345
+token: 
 data-dir: /var/lib/rancher/rke2
 cni: none
 tls-san:
@@ -548,56 +445,40 @@ node-name: master01
 cluster-cidr: "10.42.0.0/16"
 service-cidr: "10.43.0.0/16"
 ingress-controller: ingress-nginx
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+master03 | CHANGED | rc=0 >>
+=== ca-gat-dc1-nosd-stg-vm-pectr-03 ===
+server: https://10.174.161.22:9345
+token: 
+data-dir: /var/lib/rancher/rke2
+cni: none
+tls-san:
+  - cluster.local
+  - 10.174.161.22
+snapshotter: overlayfs
+node-name: master03
+cluster-cidr: "10.42.0.0/16"
+service-cidr: "10.43.0.0/16"
+ingress-controller: ingress-nginx
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible 'master02:master03' \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get --raw="/readyz?verbose"'
-master01 | CHANGED | rc=0 >>
-[+]ping ok
-[+]log ok
-[+]etcd ok
-[+]etcd-readiness ok
-[+]kms-providers ok
-[+]informer-sync ok
-[+]poststarthook/start-encryption-provider-config-automatic-reload ok
-[+]poststarthook/start-apiserver-admission-initializer ok
-[+]poststarthook/generic-apiserver-start-informers ok
-[+]poststarthook/priority-and-fairness-config-consumer ok
-[+]poststarthook/priority-and-fairness-filter ok
-[+]poststarthook/storage-object-count-tracker-hook ok
-[+]poststarthook/start-apiextensions-informers ok
-[+]poststarthook/start-apiextensions-controllers ok
-[+]poststarthook/crd-informer-synced ok
-[+]poststarthook/start-system-namespaces-controller ok
-[+]poststarthook/start-cluster-authentication-info-controller ok
-[+]poststarthook/start-kube-apiserver-identity-lease-controller ok
-[+]poststarthook/start-kube-apiserver-identity-lease-garbage-collector ok
-[+]poststarthook/start-legacy-token-tracking-controller ok
-[+]poststarthook/start-service-ip-repair-controllers ok
-[+]poststarthook/rbac/bootstrap-roles ok
-[+]poststarthook/scheduling/bootstrap-system-priority-classes ok
-[+]poststarthook/priority-and-fairness-config-producer ok
-[+]poststarthook/bootstrap-controller ok
-[+]poststarthook/start-kubernetes-service-cidr-controller ok
-[+]poststarthook/aggregator-reload-proxy-client-cert ok
-[+]poststarthook/start-kube-aggregator-informers ok
-[+]poststarthook/apiservice-status-local-available-controller ok
-[+]poststarthook/apiservice-status-remote-available-controller ok
-[+]poststarthook/apiservice-registration-controller ok
-[+]poststarthook/apiservice-discovery-controller ok
-[+]poststarthook/kube-apiserver-autoregistration ok
-[+]autoregister-completion ok
-[+]poststarthook/apiservice-openapi-controller ok
-[+]poststarthook/apiservice-openapiv3-controller ok
-[+]shutdown ok
-readyz check passed
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -a 'curl -k -s -o /dev/null -w "9345=%{http_code}\n" https://10.174.161.22:9345/ping; nc -zv 10.174.161.22 9345; nc -zv 10.174.161.22 6443'
+master02 | FAILED | rc=1 >>
+9345=000nc: connect to 10.174.161.22 port 9345 (tcp) failed: No route to host
+nc: connect to 10.174.161.22 port 6443 (tcp) failed: No route to hostnon-zero return code
+master03 | FAILED | rc=1 >>
+9345=000nc: connect to 10.174.161.22 port 9345 (tcp) failed: No route to host
+nc: connect to 10.174.161.22 port 6443 (tcp) failed: No route to hostnon-zero return code
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible 'master02:master03' \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'journalctl -u rke2-server --since "-10 min" --no-pager | egrep -i "error|failed|fatal|etcd|cni|network|certificate" | tail -100'
-master01 | CHANGED | rc=0 >>
-
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ /var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml
-
+  -a 'nc -zv 10.174.161.22 2379; nc -zv 10.174.161.22 2380'
+master02 | FAILED | rc=1 >>
+nc: connect to 10.174.161.22 port 2379 (tcp) failed: No route to host
+nc: connect to 10.174.161.22 port 2380 (tcp) failed: No route to hostnon-zero return code
+master03 | FAILED | rc=1 >>
+nc: connect to 10.174.161.22 port 2379 (tcp) failed: No route to host
+nc: connect to 10.174.161.22 port 2380 (tcp) failed: No route to hostnon-zero return code
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
