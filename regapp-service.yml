@@ -189,3 +189,10 @@ ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible-inventory   -i inventor
     "rook_examples_dir": "files/rook-1.20.7/deploy/examples"
 }
 
+
+
+ ansible master01 -i inventory/dev/hosts.ini -m debug -a 'var=rke2_install_script_dir'
+master01 | SUCCESS => {
+    "rke2_install_script_dir": "VARIABLE IS NOT DEFINED!"
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
