@@ -1,689 +1,83 @@
+Yes — this is exactly the state I would expect **before Cilium**.
 
-ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -A -o wide '                 master01 | CHANGED | rc=0 >>
-NAMESPACE     NAME                                                   READY   STATUS      RESTARTS      AGE   IP              NODE       NOMINATED NODE   READINESS GATES
-kube-system   cloud-controller-manager-master01                      1/1     Running     1 (61m ago)   61m   10.174.161.22   master01   <none>           <none>
-kube-system   cloud-controller-manager-master02                      1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
-kube-system   cloud-controller-manager-master03                      1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
-kube-system   etcd-master01                                          1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
-kube-system   etcd-master02                                          1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
-kube-system   etcd-master03                                          1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
-kube-system   helm-install-rke2-coredns-jksdl                        0/1     Completed   0             61m   10.174.161.22   master01   <none>           <none>
-kube-system   helm-install-rke2-ingress-nginx-l7lmn                  0/1     Pending     0             61m   <none>          <none>     <none>           <none>
-kube-system   helm-install-rke2-metrics-server-85drv                 0/1     Pending     0             61m   <none>          <none>     <none>           <none>
-kube-system   helm-install-rke2-runtimeclasses-x96h7                 0/1     Pending     0             61m   <none>          <none>     <none>           <none>
-kube-system   helm-install-rke2-snapshot-controller-crd-2v8cl        0/1     Pending     0             61m   <none>          <none>     <none>           <none>
-kube-system   helm-install-rke2-snapshot-controller-ztz8k            0/1     Pending     0             61m   <none>          <none>     <none>           <none>
-kube-system   kube-apiserver-master01                                1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
-kube-system   kube-apiserver-master02                                1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
-kube-system   kube-apiserver-master03                                1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
-kube-system   kube-controller-manager-master01                       1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
-kube-system   kube-controller-manager-master02                       1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
-kube-system   kube-controller-manager-master03                       1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
-kube-system   kube-proxy-master01                                    1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
-kube-system   kube-proxy-master02                                    1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
-kube-system   kube-proxy-master03                                    1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
-kube-system   kube-scheduler-master01                                1/1     Running     0             61m   10.174.161.22   master01   <none>           <none>
-kube-system   kube-scheduler-master02                                1/1     Running     0             21m   10.174.161.23   master02   <none>           <none>
-kube-system   kube-scheduler-master03                                1/1     Running     0             20m   10.174.161.24   master03   <none>           <none>
-kube-system   rke2-coredns-rke2-coredns-78c46898db-jd6xm             0/1     Pending     0             61m   <none>          <none>     <none>           <none>
-kube-system   rke2-coredns-rke2-coredns-autoscaler-f85f87746-5swrz   0/1     Pending     0             61m   <none>          <none>     <none>           <none>
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes '
-master01 | CHANGED | rc=0 >>
-NAME       STATUS     ROLES                AGE   VERSION
-master01   NotReady   control-plane,etcd   62m   v1.35.3+rke2r1
-master02   NotReady   control-plane,etcd   21m   v1.35.3+rke2r1
-master03   NotReady   control-plane,etcd   21m   v1.35.3+rke2r1
+Your control plane is healthy enough to proceed:
 
+* all 3 `etcd-*` pods are `Running`
+* all 3 `kube-apiserver-*` pods are `Running`
+* all 3 controller managers and schedulers are `Running`
+* all 3 nodes are registered
+* etcd endpoint health is good
+* the only node readiness blocker is still the missing CNI
 
+The pending pods are also consistent with that. `CoreDNS`, metrics-server, ingress, runtimeclasses, and snapshot-controller jobs are waiting because the nodes are still `NotReady`.
 
-ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key   endpoint health -w table
-+----------------------------+--------+------------+-------+
-|          ENDPOINT          | HEALTH |    TOOK    | ERROR |
-+----------------------------+--------+------------+-------+
-| https://10.174.161.22:2379 |   true |  3.21814ms |       |
-| https://10.174.161.23:2379 |   true |   3.2381ms |       |
-| https://10.174.161.24:2379 |   true | 3.423227ms |       |
-+----------------------------+--------+------------+-------+
-ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key   endpoint health -w table
-+----------------------------+--------+------------+-------+
-|          ENDPOINT          | HEALTH |    TOOK    | ERROR |
-+----------------------------+--------+------------+-------+
-| https://10.174.161.22:2379 |   true | 3.186413ms |       |
-| https://10.174.161.23:2379 |   true | 3.232652ms |       |
-| https://10.174.161.24:2379 |   true | 3.179302ms |       |
-+----------------------------+--------+------------+-------+
-ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp #
-
-
-
-
-
-
-ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpo                                                                                                      ints=https://127.0.0.1:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/va                                                                                                      r/lib/rancher/rke2/server/tls/etcd/server-client.key   member list -w table
-+------------------+---------+-------------------+----------------------------+----------------------------+------------+
-|        ID        | STATUS  |       NAME        |         PEER ADDRS         |        CLIENT ADDRS        | IS LEARNER |
-+------------------+---------+-------------------+----------------------------+----------------------------+------------+
-|  87c52ea3defb122 | started | master03-aefedb0f | https://10.174.161.24:2380 | https://10.174.161.24:2379 |      false |
-| a9989cc3cfb736e5 | started | master01-5b85ac7a | https://10.174.161.22:2380 | https://10.174.161.22:2379 |      false |
-| b21465b2fef56fb4 | started | master02-05f51475 | https://10.174.161.23:2380 | https://10.174.161.23:2379 |      false |
-+------------------+---------+-------------------+----------------------------+----------------------------+------------+
-ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl /var/lib/                                                                                                      rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl^C
-ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl \
->   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379 \
->   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
->   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
->   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
->   endpoint status -w table
-+----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+-                                                                                                      -----------+--------------------+--------+--------------------------+-------------------+
-|          ENDPOINT          |        ID        | VERSION | STORAGE VERSION | DB SIZE | IN USE | PERCENTAGE NOT IN USE | QUOTA  | IS LEADER | IS LEARNER | RAFT TERM |                                                                                                       RAFT INDEX | RAFT APPLIED INDEX | ERRORS | DOWNGRADE TARGET VERSION | DOWNGRADE ENABLED |
-+----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+-                                                                                                      -----------+--------------------+--------+--------------------------+-------------------+
-| https://10.174.161.22:2379 | a9989cc3cfb736e5 |   3.6.7 |           3.6.0 |  4.5 MB | 2.8 MB |                   39% | 2.1 GB |      true |      false |         2 |                                                                                                            12114 |              12114 |        |                          |             false |
-| https://10.174.161.23:2379 | b21465b2fef56fb4 |   3.6.7 |           3.6.0 |  4.3 MB | 2.7 MB |                   36% | 2.1 GB |     false |      false |         2 |                                                                                                            12114 |              12114 |        |                          |             false |
-| https://10.174.161.24:2379 |  87c52ea3defb122 |   3.6.7 |           3.6.0 |  4.2 MB | 2.7 MB |                   36% | 2.1 GB |     false |      false |         2 |                                                                                                            12114 |              12114 |        |                          |             false |
-+----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+-                                                                                                      -----------+--------------------+--------+--------------------------+-------------------+
-ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp # /var/lib/rancher/rke2/agent/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/4/fs/usr/local/bin/etcdctl   --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt   --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key   endpoint status -w table
-+----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+------------+--------------------+--------+--------------------------+-------------------+
-|          ENDPOINT          |        ID        | VERSION | STORAGE VERSION | DB SIZE | IN USE | PERCENTAGE NOT IN USE | QUOTA  | IS LEADER | IS LEARNER | RAFT TERM | RAFT INDEX | RAFT APPLIED INDEX | ERRORS | DOWNGRADE TARGET VERSION | DOWNGRADE ENABLED |
-+----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+------------+--------------------+--------+--------------------------+-------------------+
-| https://10.174.161.22:2379 | a9989cc3cfb736e5 |   3.6.7 |           3.6.0 |  4.5 MB | 2.8 MB |                   39% | 2.1 GB |      true |      false |         2 |      12146 |              12146 |        |                          |             false |
-| https://10.174.161.23:2379 | b21465b2fef56fb4 |   3.6.7 |           3.6.0 |  4.3 MB | 2.8 MB |                   36% | 2.1 GB |     false |      false |         2 |      12146 |              12146 |        |                          |             false |
-| https://10.174.161.24:2379 |  87c52ea3defb122 |   3.6.7 |           3.6.0 |  4.2 MB | 2.7 MB |                   36% | 2.1 GB |     false |      false |         2 |      12146 |              12146 |        |                          |             false |
-+----------------------------+------------------+---------+-----------------+---------+--------+-----------------------+--------+-----------+------------+-----------+------------+--------------------+--------+--------------------------+-------------------+
-ca-gat-dc1-nosd-stg-vm-pectr-01:/var/tmp #
-
-
-
-
-
-
-
-
-
-
-
-
-
-Your control plane is in good shape now. All three etcd pods, API servers, controller managers, and schedulers are running. The `NotReady` status is exactly because `cni: none` is still configured, so Cilium is the next functional dependency.
-
-The `etcdctl` failure is separate. This part tells us what happened:
-
-```text
-/bin/sh: line 1: --endpoints=https://127.0.0.1:2379: No such file or directory
-```
-
-That means:
+So your next action should be:
 
 ```bash
-ETCDCTL=$(find /var/lib/rancher/rke2/data -type f -name etcdctl | head -1)
+ansible-playbook \
+  -i inventory/dev/hosts.ini \
+  playbooks/deploy-cilium.yml \
+  --limit=masters
 ```
 
-returned **nothing**, so the shell effectively tried to execute:
+or whatever your actual Cilium playbook name is.
 
-```bash
---endpoints=https://127.0.0.1:2379
-```
-
-### First, confirm whether `etcdctl` exists on the host
-
-Run:
+After Cilium deploys, check in this order:
 
 ```bash
 ansible master01 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'find /var/lib/rancher/rke2 -type f -name "etcdctl" -o -name "etcdctl*" 2>/dev/null'
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -n kube-system -o wide | grep -i cilium'
 ```
 
-Also:
+Then:
 
 ```bash
 ansible master01 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'find /var/lib/rancher/rke2/data -type f -path "*/bin/*" | grep -E "/etcd|/etcdctl" || true'
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes'
 ```
 
-If you get something like:
+What you want to see is:
 
 ```text
-/var/lib/rancher/rke2/data/<hash>/bin/etcdctl
+master01   Ready
+master02   Ready
+master03   Ready
 ```
 
-then use that exact path.
-
-But newer RKE2 layouts do not always expose `etcdctl` directly on the host. In that case, use the running etcd process.
-
-### Reliable method: use the etcd process root
-
-First find the etcd PID:
+Then check CoreDNS:
 
 ```bash
 ansible master01 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'pgrep -af "etcd"'
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -n kube-system -o wide | grep coredns'
 ```
 
-Then locate `etcdctl` inside the container filesystem:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '
-PID=$(pgrep -f "/usr/local/bin/etcd" | head -1)
-echo "ETCD PID=$PID"
-find /proc/$PID/root -type f -name etcdctl 2>/dev/null | head
-'
-```
-
-You will probably see something similar to:
+Expected transition:
 
 ```text
-/proc/75133/root/usr/local/bin/etcdctl
+Pending
+  ↓
+ContainerCreating
+  ↓
+Running
 ```
 
-Then run:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '
-PID=$(pgrep -f "/usr/local/bin/etcd" | head -1)
-ETCDCTL=/proc/$PID/root/usr/local/bin/etcdctl
-
-$ETCDCTL \
-  --endpoints=https://127.0.0.1:2379 \
-  --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
-  --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
-  --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
-  member list -w table
-'
-```
-
-You want three rows, corresponding to:
-
-```text
-master01
-master02
-master03
-```
-
-Then check endpoint health:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '
-PID=$(pgrep -f "/usr/local/bin/etcd" | head -1)
-ETCDCTL=/proc/$PID/root/usr/local/bin/etcdctl
-
-$ETCDCTL \
-  --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379 \
-  --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
-  --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
-  --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
-  endpoint health -w table
-'
-```
-
-And finally:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '
-PID=$(pgrep -f "/usr/local/bin/etcd" | head -1)
-ETCDCTL=/proc/$PID/root/usr/local/bin/etcdctl
-
-$ETCDCTL \
-  --endpoints=https://10.174.161.22:2379,https://10.174.161.23:2379,https://10.174.161.24:2379 \
-  --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
-  --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
-  --key=/var/lib/rancher/rke2/server/tls/etcd/server-client.key \
-  endpoint status -w table
-'
-```
-
-You want:
-
-```text
-3 endpoints
-all healthy
-one leader
-two followers
-same/similar raft index
-no learner stuck
-no errors
-```
-
-At that point I would consider the **RKE2 control-plane bootstrap complete**.
-
-Then proceed immediately to Cilium, because your current node readiness output already proves the only blocker is:
-
-```text
-NetworkPluginNotReady
-cni plugin not initialized
-```
-
-So the sequence is now:
-
-```text
-3 masters registered       ✓
-3 etcd pods running        ✓
-3 API servers running      ✓
-3 schedulers running       ✓
-3 controller managers      ✓
-etcd member health         ← verify now
-Cilium                     ← next
-nodes Ready
-CoreDNS Running
-workers join
-```
-
-Do not troubleshoot `NotReady` any further before installing Cilium; Kubernetes is telling you exactly what it is waiting for.
-
-
-
-
-
-
-
-
-
-
-
-
-
-We have the root cause now. This is **not an RKE2 problem yet**; it is node-to-node networking.
-
-Both `master02` and `master03` are trying to join:
-
-```text
-https://10.174.161.22:9345
-```
-
-and both receive:
-
-```text
-No route to host
-```
-
-for `9345`, `6443`, `2379`, and `2380`. 
-
-RKE2 then fails while attempting to retrieve `/cacerts` from `master01`, so it never gets far enough to validate the cluster token. 
-
-There is also a second issue visible in the generated config: all three nodes show an empty `token:` value.  We should fix networking first, then confirm whether that token is truly blank or was intentionally sanitized in your output.
-
-### 1. Stop the restart storm
-
-`master02` and `master03` have already restarted hundreds of times. Stop them while troubleshooting:
-
-```bash
-ansible 'master02:master03' \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m systemd \
-  -a 'name=rke2-server state=stopped'
-```
-
-Confirm:
-
-```bash
-ansible 'master02:master03' \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'systemctl is-active rke2-server || true'
-```
-
-Expected:
-
-```text
-inactive
-```
-
-### 2. Verify IP addresses and routing on all three masters
-
-Run:
-
-```bash
-ansible masters \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'echo "=== $(hostname) ==="; ip -br addr; echo "--- routes ---"; ip route'
-```
-
-Based on your inventory, we expect approximately:
-
-```text
-master01 → 10.174.161.22
-master02 → 10.174.161.23
-master03 → 10.174.161.24
-```
-
-If these are intended to be on the same subnet, you should see something like:
-
-```text
-10.174.161.0/24 dev eth0 proto kernel scope link src 10.174.161.23
-```
-
-on `master02`, for example.
-
-Then run the kernel's route decision:
-
-```bash
-ansible 'master02:master03' \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m command \
-  -a 'ip route get 10.174.161.22'
-```
-
-A healthy same-subnet result should resemble:
-
-```text
-10.174.161.22 dev eth0 src 10.174.161.23
-```
-
-If instead you see a gateway or unexpected interface, the network configuration is wrong.
-
-### 3. Test plain ICMP before RKE2 ports
-
-Run:
-
-```bash
-ansible 'master02:master03' \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'ping -c 4 -W 2 10.174.161.22'
-```
-
-Then test reverse connectivity from `master01`:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'ping -c 3 10.174.161.23; ping -c 3 10.174.161.24'
-```
-
-If ping fails, don't touch RKE2 yet.
-
-### 4. Check neighbor/ARP resolution
-
-Because these IP addresses appear to be adjacent, this is particularly important:
-
-```bash
-ansible masters \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'ip neigh show'
-```
-
-After pinging `master01`, check specifically:
-
-```bash
-ansible 'master02:master03' \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'ip neigh show 10.174.161.22'
-```
-
-Healthy:
-
-```text
-10.174.161.22 dev eth0 lladdr xx:xx:xx:xx:xx:xx REACHABLE
-```
-
-Problematic:
-
-```text
-10.174.161.22 dev eth0 FAILED
-```
-
-or:
-
-```text
-INCOMPLETE
-```
-
-If you get `FAILED/INCOMPLETE`, think VLAN, subnet mask, vSwitch/port-group, or L2 security—not RKE2.
-
-### 5. Check the SUSE firewall
-
-`No route to host` can be misleading. A firewall rule using `REJECT` can produce that message even when the routing table is perfectly fine.
-
-Check all three:
-
-```bash
-ansible masters \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'systemctl is-active firewalld || true; firewall-cmd --state 2>/dev/null || true; firewall-cmd --get-active-zones 2>/dev/null || true; firewall-cmd --list-all 2>/dev/null || true'
-```
-
-For a controlled diagnostic, temporarily stop firewalld on the three cluster nodes:
-
-```bash
-ansible masters \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m systemd \
-  -a 'name=firewalld state=stopped'
-```
-
-Then immediately retest:
-
-```bash
-ansible 'master02:master03' \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'nc -zvw3 10.174.161.22 9345; nc -zvw3 10.174.161.22 6443'
-```
-
-If this suddenly works, we've found the problem.
-
-Don't permanently leave the firewall disabled; we can build the proper RKE2 rules afterward.
-
-### 6. Confirm master01 is actually listening
-
-We already know RKE2 is running on `master01`, but verify the sockets:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'ss -lntp | egrep ":(6443|9345|2379|2380)\b"'
-```
-
-You should see at least:
-
-```text
-:9345
-:6443
-:2379
-:2380
-```
-
-The critical thing is that `9345` must not be listening only on:
-
-```text
-127.0.0.1:9345
-```
-
-It needs to be reachable from the other servers.
-
-Also test locally from `master01`:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'curl -ks https://127.0.0.1:9345/cacerts | head; echo; curl -ks https://10.174.161.22:9345/cacerts | head'
-```
-
-If both work locally, `master01` itself is serving RKE2 correctly.
-
-### 7. Check nftables too
-
-SUSE may have nftables rules even if what you expect from firewalld isn't obvious:
-
-```bash
-ansible masters \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'nft list ruleset 2>/dev/null | head -200'
-```
-
-Specifically:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'nft list ruleset 2>/dev/null | egrep -i "reject|drop|9345|6443|2379|2380"'
-```
-
-### 8. Then verify the RKE2 token
-
-Your captured configuration currently shows:
+I would also check whether your Cilium configuration is intended to replace kube-proxy or coexist with it. Right now `kube-proxy` is already running on all three masters. If your Cilium values use:
 
 ```yaml
-server: https://10.174.161.22:9345
-token:
+kubeProxyReplacement: true
 ```
 
-on all three masters. 
+then you should normally disable kube-proxy in the RKE2 config before Cilium deployment.
 
-If that's literally what is in `/etc/rancher/rke2/config.yaml`, it's wrong.
+If instead your Cilium deployment is configured with kube-proxy replacement disabled, then the current state is fine.
 
-Check without printing the actual secret:
-
-```bash
-ansible masters \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'TOKEN=$(awk "/^[[:space:]]*token:/ {sub(/^[^:]*:[[:space:]]*/,\"\"); print; exit}" /etc/rancher/rke2/config.yaml); echo "token_length=${#TOKEN}"'
-```
-
-You want a non-zero number on all three.
-
-If you get:
-
-```text
-token_length=0
-```
-
-then your Ansible token variable is not being rendered correctly.
-
-Find where the role gets the token:
-
-```bash
-grep -RniE 'rke2_token|token:' \
-  inventory/dev \
-  playbooks \
-  roles/lablabs.rke2/defaults \
-  roles/lablabs.rke2/vars \
-  roles/lablabs.rke2/templates
-```
-
-Do **not** paste the real token here. Just show variable names and `token_length`.
-
-### 9. After networking works
-
-The critical test is:
-
-```bash
-ansible 'master02:master03' \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'curl -ksS --connect-timeout 3 https://10.174.161.22:9345/cacerts | head'
-```
-
-If that returns certificate data rather than:
-
-```text
-No route to host
-```
-
-then start **master02 only** first:
-
-```bash
-ansible master02 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m systemd \
-  -a 'name=rke2-server state=started'
-```
-
-Follow it:
-
-```bash
-ansible master02 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a 'journalctl -u rke2-server -n 80 --no-pager'
-```
-
-Then from `master01`:
-
-```bash
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m shell \
-  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
-```
-
-Once `master02` registers, repeat for `master03`.
-
-I would **not wipe `/var/lib/rancher/rke2` at this point**. The logs show a straightforward reachability failure, not corrupted etcd membership. Fix the network first; deleting data now would turn one problem into two.
-
-The most useful next output is these four commands:
-
-```bash
-ansible masters -i inventory/dev/hosts.ini -b -m shell \
-  -a 'hostname; ip -br addr; ip route'
-```
-
-```bash
-ansible 'master02:master03' -i inventory/dev/hosts.ini -b -m command \
-  -a 'ip route get 10.174.161.22'
-```
-
-```bash
-ansible 'master02:master03' -i inventory/dev/hosts.ini -b -m shell \
-  -a 'ping -c 3 10.174.161.22; ip neigh show 10.174.161.22'
-```
-
-```bash
-ansible master01 -i inventory/dev/hosts.ini -b -m shell \
-  -a 'ss -lntp | egrep ":(9345|6443|2379|2380)\b"; firewall-cmd --state 2>/dev/null || true; firewall-cmd --list-all 2>/dev/null || true'
-```
-
-Those will tell us very quickly whether the offender is **routing/subnet, VLAN/L2, or SUSE firewall**.
+That is the one setting I would verify before executing the Cilium playbook.
