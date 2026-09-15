@@ -16,14 +16,11 @@ spec:
 
 
 ---
-ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
-ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
+TASK [lablabs.rke2 : Run RKE2 install script with airgap variables] ***********************************************************************
+fatal: [master01]: FAILED! => {"changed": false, "cmd": "/var/tmp/rke2.sh", "msg": "[Errno 2] No such file or directory: b'/var/tmp/rke2.sh                              '", "rc": 2, "stderr": "", "stderr_lines": [], "stdout": "", "stdout_lines": []}
 
-ansible_become: true
-ansible_become_method: sudo
-ansible_become_password: "{{ lookup('env', 'ANSIBLE_BECOME_PASSWORD') }}"
+PLAY RECAP ********************************************************************************************************************************
+master01                   : ok=12   changed=3    unreachable=0    failed=1    skipped=14   rescued=0    ignored=0
 
-ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
-environment_name: "non-production"
-ansible_python_interpreter: "/usr/bin/python3"
