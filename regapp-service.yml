@@ -1,3 +1,138 @@
+Yes. If you are fixing the `^M` / Windows CRLF characters you saw in your Ansible files, `dos2unix` is a good way to do it, and you can safely automate it with a script.
+
+A simple recursive script for your Ansible repository:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_DIR="${1:-.}"
+
+echo "Converting CRLF files under: ${BASE_DIR}"
+
+find "$BASE_DIR" -type f \
+  \( -name "*.yml" \
+     -o -name "*.yaml" \
+     -o -name "*.sh" \
+     -o -name "*.j2" \
+     -o -name "*.md" \
+     -o -name "*.cfg" \
+     -o -name "*.ini" \) \
+  -print0 |
+while IFS= read -r -d '' file; do
+    if grep -q $'\r' "$file"; then
+        echo "Fixing: $file"
+        dos2unix "$file"
+    fi
+done
+
+echo "CRLF conversion complete."
+```
+
+Save it as:
+
+```bash
+fix-line-endings.sh
+```
+
+Make it executable:
+
+```bash
+chmod +x fix-line-endings.sh
+```
+
+Then run it from the root of your Ansible project:
+
+```bash
+./fix-line-endings.sh .
+```
+
+Or target only the directories where you found the issue:
+
+```bash
+./fix-line-endings.sh roles
+```
+
+You can verify afterward with:
+
+```bash
+grep -RIl $'\r' inventory roles playbooks
+```
+
+If that returns nothing, the CRLF characters are gone.
+
+For your specific case where you previously had output like:
+
+```text
+roles/lablabs.rke2/tasks/rke2.yml:5: ... ^M$
+```
+
+you can fix just that role with:
+
+```bash
+find roles/lablabs.rke2 \
+  -type f \
+  \( -name "*.yml" -o -name "*.yaml" -o -name "*.sh" -o -name "*.j2" \) \
+  -exec dos2unix {} +
+```
+
+Then verify:
+
+```bash
+grep -Rni $'\r' roles/lablabs.rke2
+```
+
+I would also add a `.gitattributes` file at the root of the Git repository so Git stops reintroducing CRLF later:
+
+```gitattributes
+* text=auto
+
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.sh   text eol=lf
+*.j2   text eol=lf
+*.cfg  text eol=lf
+*.ini  text eol=lf
+*.md   text eol=lf
+```
+
+Then normalize the repository once:
+
+```bash
+git add --renormalize .
+git status
+```
+
+Review the changes:
+
+```bash
+git diff --check
+git diff
+```
+
+Then commit:
+
+```bash
+git add .
+git commit -m "Normalize repository line endings to LF"
+```
+
+For your GitLab/Ansible environment, I recommend using both approaches: **`dos2unix` fixes the existing files; `.gitattributes` prevents the problem from coming back.**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 That result makes sense: `rke2_install_script_dir` is probably defined inside the role’s `defaults/main.yml` or `vars/main.yml`, so an ad-hoc `ansible ... -m debug` command will not automatically load the role variables.
 
 The more important finding is that the **entire `lablabs.rke2` role has CRLF line endings**. I would fix that first, then inspect exactly where `rke2_install_script_dir` is defined.
