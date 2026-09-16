@@ -1,3 +1,60 @@
+ tree roles/cilium
+roles/cilium
+├── defaults
+│   └── main.yml
+├── files
+│   ├── cilium-values.yaml
+│   └── crds
+│       ├── gateway.networking.k8s.io_gatewayclasses.yaml
+│       ├── gateway.networking.k8s.io_gateways.yaml
+│       ├── gateway.networking.k8s.io_grpcroutes.yaml
+│       ├── gateway.networking.k8s.io_httproutes.yaml
+│       ├── gateway.networking.k8s.io_referencegrants.yaml
+│       └── gateway.networking.k8s.io_tlsroutes.yaml
+└── tasks
+    └── main.yml
+
+5 directories, 9 files
+
+
+cat  playbooks/deploy-cilium.yml
+---
+- name: Fetch kubeconfig from RKE2 master
+  hosts: "{{ groups['masters'][0] }}"
+  become: yes
+  roles:
+    - kubeconfig
+
+- name: Install/Upgrade Cilium on RKE2 Cluster
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    local_kubeconfig: "/tmp/rke2-kubeconfig.yaml"
+    artifactory_user: "{{ artifactory_username }}"
+    artifactory_password: "{{ artifactory_password }}"
+  environment:
+    KUBECONFIG: "{{ local_kubeconfig }}"
+  roles:
+    - cilium
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Yes — this is exactly the state I would expect **before Cilium**.
 
 Your control plane is healthy enough to proceed:
