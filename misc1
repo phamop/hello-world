@@ -1,3 +1,29 @@
+---
+ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
+
+ansible_become: true
+ansible_become_method: sudo
+ansible_become_password: "{{ lookup('env', 'ANSIBLE_BECOME_PASSWORD') }}"
+
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+environment_name: "non-production"
+ansible_python_interpreter: "/usr/bin/python3"
+
+# Nexus / Artifactory credentials
+artifactory_username: "{{ lookup('env', 'ARTIFACTORY_USERNAME') }}"
+artifactory_password: "{{ lookup('env', 'ARTIFACTORY_PASSWORD') }}"
+
+# Optional base URLs
+artifactory_url: "{{ lookup('env', 'ARTIFACTORY_URL') | default('https://nexus.phamnet.com', true) }}"
+
+
+
+
+
+
+
 Then we have learned something important: **the kubeconfig role is not the root cause**. If even a direct local `ping` hangs with `ansible_become=false`, the problem is in Ansible's **local execution environment/configuration**, not RKE2.
 
 Do not change the kubeconfig role yet. Isolate Ansible completely from your project inventory and variables.
