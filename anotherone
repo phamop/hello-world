@@ -1,225 +1,208 @@
-mkdir -p scripts
+ scripts/fix-cilium-spire.sh
+============================================================
+ Cilium SPIRE Repair
+============================================================
 
-cat > scripts/fix-cilium-spire.sh <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
+Target host       : master01
+Cilium release    : cilium
+Cilium namespace  : kube-system
+SPIRE namespace   : cilium-spire
 
-INVENTORY="inventory/dev/hosts.ini"
-HOST="master01"
+=== 1. Verify master01 is reachable ===
+master01 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
 
-KUBECTL="/var/lib/rancher/rke2/bin/kubectl"
-KUBECONFIG="/etc/rancher/rke2/rke2.yaml"
-HELM="/usr/bin/helm"
+=== 2. Verify Kubernetes API ===
+master01 | CHANGED | rc=0 >>
+NAME       STATUS   ROLES                AGE     VERSION
+master01   Ready    control-plane,etcd   4h2m    v1.35.3+rke2r1
+master02   Ready    control-plane,etcd   3h21m   v1.35.3+rke2r1
+master03   Ready    control-plane,etcd   3h21m   v1.35.3+rke2r1
 
-CILIUM_RELEASE="cilium"
-CILIUM_NAMESPACE="kube-system"
-SPIRE_NAMESPACE="cilium-spire"
-VALUES_FILE="/var/tmp/cilium/cilium-values.yaml"
-CHART="helm-virtual/cilium"
+=== 3. Verify Helm ===
+master01 | CHANGED | rc=0 >>
+v3.18.4+gd80839c
 
-echo "============================================================"
-echo " Cilium SPIRE Repair"
-echo "============================================================"
-echo
-echo "Target host       : ${HOST}"
-echo "Cilium release    : ${CILIUM_RELEASE}"
-echo "Cilium namespace  : ${CILIUM_NAMESPACE}"
-echo "SPIRE namespace   : ${SPIRE_NAMESPACE}"
-echo
+=== 4. Verify Cilium values file ===
+master01 | CHANGED | rc=0 >>
+-rw-r--r--. 1 root root 5.1K Sep 16 04:11 /var/tmp/cilium/cilium-values.yaml
 
-echo "=== 1. Verify master01 is reachable ==="
+=== 5. Show current SPIRE state ===
+master01 | CHANGED | rc=0 >>
+NAME                READY   STATUS    RESTARTS   AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+spire-agent-86fs6   1/1     Running   0          2m58s   10.174.161.22   master01   <none>           <none>
+spire-agent-nbxgg   1/1     Running   0          2m58s   10.174.161.23   master02   <none>           <none>
+spire-agent-qsl2g   1/1     Running   0          2m58s   10.174.161.24   master03   <none>           <none>
+spire-server-0      2/2     Running   0          2m57s   10.244.0.142    master03   <none>           <none>
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -m ping
+=== 6. Remove failed SPIRE server/agent workloads ===
+master01 | CHANGED | rc=0 >>
+statefulset.apps "spire-server" deleted from cilium-spire namespace
+master01 | CHANGED | rc=0 >>
+daemonset.apps "spire-agent" deleted from cilium-spire namespace
 
-echo
-echo "=== 2. Verify Kubernetes API ==="
+=== 7. Remove stale SPIRE PVC if present ===
+This deployment will temporarily use in-memory SPIRE storage.
+master01 | CHANGED | rc=0 >>
+No resources found
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} get nodes"
+=== 8. Refresh Helm repository ===
+master01 | CHANGED | rc=0 >>
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "helm-virtual" chart repository
+Update Complete. ⎈Happy Helming!⎈
 
-echo
-echo "=== 3. Verify Helm ==="
+=== 9. Upgrade Cilium and disable SPIRE persistent storage ===
+master01 | CHANGED | rc=0 >>
+Release "cilium" has been upgraded. Happy Helming!
+NAME: cilium
+LAST DEPLOYED: Wed Sep 16 04:41:28 2026
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 3
+TEST SUITE: None
+NOTES:
+You have successfully installed Cilium with Hubble Relay and Hubble UI.
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${HELM} version --short"
+WARNINGS:
+- WARNING: TLS is not enabled for the Hubble Relay server (hubble.relay.tls.server.enabled=false).
+  This means Hubble Relay communications may not be encrypted. For more information about the security
+  implications and suggested controls, please see: https://docs.cilium.io/en/stable/security/threat-model/#hubble-data-attacker
 
-echo
-echo "=== 4. Verify Cilium values file ==="
+Your release version is 1.20.2.
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "test -s ${VALUES_FILE} && ls -lh ${VALUES_FILE}"
+For any further help, visit https://docs.cilium.io/en/v1.20/gettinghelp
 
-echo
-echo "=== 5. Show current SPIRE state ==="
+=== 10. Wait for SPIRE server ===
+master01 | CHANGED | rc=0 >>
+partitioned roll out complete: 1 new pods have been updated...
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} get pods -n ${SPIRE_NAMESPACE} -o wide || true"
+=== 11. Wait for SPIRE agents ===
+master01 | CHANGED | rc=0 >>
+daemon set "spire-agent" successfully rolled out
 
-echo
-echo "=== 6. Remove failed SPIRE server/agent workloads ==="
+=== 12. Restart Cilium operator ===
+master01 | CHANGED | rc=0 >>
+deployment.apps/cilium-operator restarted
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} delete statefulset spire-server -n ${SPIRE_NAMESPACE} --ignore-not-found=true"
+=== 13. Restart Cilium agents ===
+master01 | CHANGED | rc=0 >>
+daemonset.apps/cilium restarted
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} delete daemonset spire-agent -n ${SPIRE_NAMESPACE} --ignore-not-found=true"
+=== 14. Wait for Cilium operator ===
+master01 | CHANGED | rc=0 >>
+Waiting for deployment "cilium-operator" rollout to finish: 1 of 2 updated replicas are available...
+deployment "cilium-operator" successfully rolled out
 
-echo
-echo "=== 7. Remove stale SPIRE PVC if present ==="
-echo "This deployment will temporarily use in-memory SPIRE storage."
+=== 15. Wait for Cilium DaemonSet ===
+master01 | CHANGED | rc=0 >>
+Waiting for daemon set "cilium" rollout to finish: 2 out of 3 new pods have been updated...
+Waiting for daemon set "cilium" rollout to finish: 2 out of 3 new pods have been updated...
+Waiting for daemon set "cilium" rollout to finish: 2 out of 3 new pods have been updated...
+Waiting for daemon set "cilium" rollout to finish: 2 of 3 updated pods are available...
+daemon set "cilium" successfully rolled out
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} delete pvc -n ${SPIRE_NAMESPACE} --all --ignore-not-found=true"
+=== 16. Final SPIRE status ===
+master01 | CHANGED | rc=0 >>
+NAME                READY   STATUS    RESTARTS   AGE   IP              NODE       NOMINATED NODE   READINESS GATES
+spire-agent-4vsgt   1/1     Running   0          74s   10.174.161.23   master02   <none>           <none>
+spire-agent-d4np9   1/1     Running   0          74s   10.174.161.22   master01   <none>           <none>
+spire-agent-hhqn4   1/1     Running   0          74s   10.174.161.24   master03   <none>           <none>
+spire-server-0      2/2     Running   0          74s   10.244.0.34     master03   <none>           <none>
 
-echo
-echo "=== 8. Refresh Helm repository ==="
+=== 17. Final Cilium status ===
+master01 | CHANGED | rc=0 >>
+NAME                                                   READY   STATUS      RESTARTS       AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+cilium-envoy-fw4wf                                     1/1     Running     0              29m     10.174.161.24   master03   <none>           <none>
+cilium-envoy-gbc8g                                     1/1     Running     0              29m     10.174.161.22   master01   <none>           <none>
+cilium-envoy-mrp7q                                     1/1     Running     0              29m     10.174.161.23   master02   <none>           <none>
+cilium-lbsfd                                           1/1     Running     0              26s     10.174.161.23   master02   <none>           <none>
+cilium-operator-9c6968dfd-rsx52                        1/1     Running     0              27s     10.174.161.23   master02   <none>           <none>
+cilium-operator-9c6968dfd-xjm7n                        1/1     Running     0              27s     10.174.161.22   master01   <none>           <none>
+cilium-vdhdk                                           1/1     Running     0              14s     10.174.161.22   master01   <none>           <none>
+cilium-wz7m6                                           1/1     Running     0              26s     10.174.161.24   master03   <none>           <none>
+hubble-relay-bdbfb59-mwc8k                             1/1     Running     0              29m     10.244.2.9      master01   <none>           <none>
+hubble-ui-5d45b9c77b-ptns4                             2/2     Running     0              29m     10.244.2.121    master01   <none>           <none>
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${HELM} repo update"
+=== 18. Final node status ===
+master01 | CHANGED | rc=0 >>
+NAME       STATUS   ROLES                AGE     VERSION          INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                            KERNEL-VERSION            CONTAINER-RUNTIME
+master01   Ready    control-plane,etcd   4h4m    v1.35.3+rke2r1   10.174.161.22   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
+master02   Ready    control-plane,etcd   3h23m   v1.35.3+rke2r1   10.174.161.23   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
+master03   Ready    control-plane,etcd   3h22m   v1.35.3+rke2r1   10.174.161.24   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
 
-echo
-echo "=== 9. Upgrade Cilium and disable SPIRE persistent storage ==="
+=== 19. Helm release status ===
+master01 | CHANGED | rc=0 >>
+NAME: cilium
+LAST DEPLOYED: Wed Sep 16 04:41:28 2026
+NAMESPACE: kube-system
+STATUS: deployed
+REVISION: 3
+TEST SUITE: None
+NOTES:
+You have successfully installed Cilium with Hubble Relay and Hubble UI.
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "KUBECONFIG=${KUBECONFIG} ${HELM} upgrade --install ${CILIUM_RELEASE} ${CHART} \
-      --namespace ${CILIUM_NAMESPACE} \
-      --create-namespace \
-      --values ${VALUES_FILE} \
-      --set authentication.mutual.spire.install.server.dataStorage.enabled=false \
-      --wait \
-      --timeout 10m"
+WARNINGS:
+- WARNING: TLS is not enabled for the Hubble Relay server (hubble.relay.tls.server.enabled=false).
+  This means Hubble Relay communications may not be encrypted. For more information about the security
+  implications and suggested controls, please see: https://docs.cilium.io/en/stable/security/threat-model/#hubble-data-attacker
 
-echo
-echo "=== 10. Wait for SPIRE server ==="
+Your release version is 1.20.2.
 
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} rollout status statefulset/spire-server \
-      -n ${SPIRE_NAMESPACE} \
-      --timeout=300s"
+For any further help, visit https://docs.cilium.io/en/v1.20/gettinghelp
 
-echo
-echo "=== 11. Wait for SPIRE agents ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} rollout status daemonset/spire-agent \
-      -n ${SPIRE_NAMESPACE} \
-      --timeout=300s"
-
-echo
-echo "=== 12. Restart Cilium operator ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} rollout restart deployment/cilium-operator \
-      -n ${CILIUM_NAMESPACE}"
-
-echo
-echo "=== 13. Restart Cilium agents ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} rollout restart daemonset/cilium \
-      -n ${CILIUM_NAMESPACE}"
-
-echo
-echo "=== 14. Wait for Cilium operator ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} rollout status deployment/cilium-operator \
-      -n ${CILIUM_NAMESPACE} \
-      --timeout=300s"
-
-echo
-echo "=== 15. Wait for Cilium DaemonSet ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} rollout status daemonset/cilium \
-      -n ${CILIUM_NAMESPACE} \
-      --timeout=300s"
-
-echo
-echo "=== 16. Final SPIRE status ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} get pods -n ${SPIRE_NAMESPACE} -o wide"
-
-echo
-echo "=== 17. Final Cilium status ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} get pods -n ${CILIUM_NAMESPACE} -o wide | grep -E 'NAME|cilium|hubble'"
-
-echo
-echo "=== 18. Final node status ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "${KUBECTL} --kubeconfig ${KUBECONFIG} get nodes -o wide"
-
-echo
-echo "=== 19. Helm release status ==="
-
-ansible "${HOST}" \
-  -i "${INVENTORY}" \
-  -b \
-  -m shell \
-  -a "KUBECONFIG=${KUBECONFIG} ${HELM} status ${CILIUM_RELEASE} -n ${CILIUM_NAMESPACE}"
-
-echo
-echo "============================================================"
-echo " Cilium SPIRE repair completed"
-echo "============================================================"
-EOF
+============================================================
+ Cilium SPIRE repair completed
+============================================================
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -A -o wide'
+master01 | CHANGED | rc=0 >>
+NAMESPACE      NAME                                                   READY   STATUS      RESTARTS       AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+cilium-spire   spire-agent-4vsgt                                      1/1     Running     0              85s     10.174.161.23   master02   <none>           <none>
+cilium-spire   spire-agent-d4np9                                      1/1     Running     0              85s     10.174.161.22   master01   <none>           <none>
+cilium-spire   spire-agent-hhqn4                                      1/1     Running     0              85s     10.174.161.24   master03   <none>           <none>
+cilium-spire   spire-server-0                                         2/2     Running     0              85s     10.244.0.34     master03   <none>           <none>
+kube-system    cilium-envoy-fw4wf                                     1/1     Running     0              29m     10.174.161.24   master03   <none>           <none>
+kube-system    cilium-envoy-gbc8g                                     1/1     Running     0              29m     10.174.161.22   master01   <none>           <none>
+kube-system    cilium-envoy-mrp7q                                     1/1     Running     0              29m     10.174.161.23   master02   <none>           <none>
+kube-system    cilium-lbsfd                                           1/1     Running     0              36s     10.174.161.23   master02   <none>           <none>
+kube-system    cilium-operator-9c6968dfd-rsx52                        1/1     Running     0              37s     10.174.161.23   master02   <none>           <none>
+kube-system    cilium-operator-9c6968dfd-xjm7n                        1/1     Running     0              37s     10.174.161.22   master01   <none>           <none>
+kube-system    cilium-vdhdk                                           1/1     Running     0              24s     10.174.161.22   master01   <none>           <none>
+kube-system    cilium-wz7m6                                           1/1     Running     0              36s     10.174.161.24   master03   <none>           <none>
+kube-system    cloud-controller-manager-master01                      1/1     Running     1 (4h4m ago)   4h3m    10.174.161.22   master01   <none>           <none>
+kube-system    cloud-controller-manager-master02                      1/1     Running     0              3h23m   10.174.161.23   master02   <none>           <none>
+kube-system    cloud-controller-manager-master03                      1/1     Running     0              3h22m   10.174.161.24   master03   <none>           <none>
+kube-system    etcd-master01                                          1/1     Running     0              4h3m    10.174.161.22   master01   <none>           <none>
+kube-system    etcd-master02                                          1/1     Running     0              3h23m   10.174.161.23   master02   <none>           <none>
+kube-system    etcd-master03                                          1/1     Running     0              3h22m   10.174.161.24   master03   <none>           <none>
+kube-system    helm-install-rke2-coredns-jksdl                        0/1     Completed   0              4h4m    10.174.161.22   master01   <none>           <none>
+kube-system    helm-install-rke2-ingress-nginx-l7lmn                  0/1     Completed   0              4h4m    10.244.2.209    master01   <none>           <none>
+kube-system    helm-install-rke2-metrics-server-85drv                 0/1     Completed   0              4h4m    10.244.2.43     master01   <none>           <none>
+kube-system    helm-install-rke2-runtimeclasses-x96h7                 0/1     Completed   0              4h4m    10.244.2.150    master01   <none>           <none>
+kube-system    helm-install-rke2-snapshot-controller-crd-2v8cl        0/1     Completed   0              4h4m    10.244.2.130    master01   <none>           <none>
+kube-system    helm-install-rke2-snapshot-controller-ztz8k            0/1     Completed   1              4h4m    10.244.2.182    master01   <none>           <none>
+kube-system    hubble-relay-bdbfb59-mwc8k                             1/1     Running     0              29m     10.244.2.9      master01   <none>           <none>
+kube-system    hubble-ui-5d45b9c77b-ptns4                             2/2     Running     0              29m     10.244.2.121    master01   <none>           <none>
+kube-system    kube-apiserver-master01                                1/1     Running     0              4h3m    10.174.161.22   master01   <none>           <none>
+kube-system    kube-apiserver-master02                                1/1     Running     0              3h23m   10.174.161.23   master02   <none>           <none>
+kube-system    kube-apiserver-master03                                1/1     Running     0              3h22m   10.174.161.24   master03   <none>           <none>
+kube-system    kube-controller-manager-master01                       1/1     Running     0              4h3m    10.174.161.22   master01   <none>           <none>
+kube-system    kube-controller-manager-master02                       1/1     Running     0              3h23m   10.174.161.23   master02   <none>           <none>
+kube-system    kube-controller-manager-master03                       1/1     Running     0              3h22m   10.174.161.24   master03   <none>           <none>
+kube-system    kube-proxy-master01                                    1/1     Running     0              4h3m    10.174.161.22   master01   <none>           <none>
+kube-system    kube-proxy-master02                                    1/1     Running     0              3h23m   10.174.161.23   master02   <none>           <none>
+kube-system    kube-proxy-master03                                    1/1     Running     0              3h22m   10.174.161.24   master03   <none>           <none>
+kube-system    kube-scheduler-master01                                1/1     Running     0              4h3m    10.174.161.22   master01   <none>           <none>
+kube-system    kube-scheduler-master02                                1/1     Running     0              3h23m   10.174.161.23   master02   <none>           <none>
+kube-system    kube-scheduler-master03                                1/1     Running     0              3h22m   10.174.161.24   master03   <none>           <none>
+kube-system    rke2-coredns-rke2-coredns-78c46898db-jd6xm             1/1     Running     0              4h3m    10.244.2.213    master01   <none>           <none>
+kube-system    rke2-coredns-rke2-coredns-78c46898db-rltqm             1/1     Running     0              28m     10.244.1.214    master02   <none>           <none>
+kube-system    rke2-coredns-rke2-coredns-autoscaler-f85f87746-5swrz   1/1     Running     0              4h3m    10.244.2.184    master01   <none>           <none>
+kube-system    rke2-ingress-nginx-controller-2x45t                    1/1     Running     0              28m     10.244.2.167    master01   <none>           <none>
+kube-system    rke2-ingress-nginx-controller-wnwpm                    1/1     Running     0              28m     10.244.0.75     master03   <none>           <none>
+kube-system    rke2-ingress-nginx-controller-wrr5p                    1/1     Running     0              28m     10.244.1.133    master02   <none>           <none>
+kube-system    rke2-metrics-server-769f546ff8-vzn2x                   1/1     Running     0              28m     10.244.2.198    master01   <none>           <none>
+kube-system    rke2-snapshot-controller-858d65d54-4r6zs               1/1     Running     0              28m     10.244.1.116    master02   <none>           <none>
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
