@@ -1,3 +1,20 @@
+ansible-playbook \
+  -i inventory/dev/hosts.ini \
+  playbooks/deploy-cilium.yml \
+  --syntax-check
+
+
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m command \
+  -a '/usr/local/bin/helm version --short'
+
+
+
+
+
+
 sed -i \
   's/cmd: helm /cmd: "{{ helm_binary }}" /g; s/^      helm /      {{ helm_binary }} /g' \
   roles/cilium/tasks/main.yml grep -nE '\bhelm\b|helm_binary' roles/cilium/tasks/main.yml
