@@ -13,8 +13,12 @@ master01 | FAILED! => {
 ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
 
-grep -nE 'cilium_kubeconfig|cilium_kubectl' \
+ grep -nE 'cilium_kubeconfig|cilium_kubectl' \
   inventory/dev/group_vars/all.yml
+29:cilium_kubeconfig: "/etc/rancher/rke2/rke2.yaml"
+30:cilium_kubectl: "/var/lib/rancher/rke2/bin/kubectl"
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
 
 
 
