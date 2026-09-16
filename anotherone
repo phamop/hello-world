@@ -1,9 +1,10 @@
-# ============================================================
-# RKE2 / Kubernetes paths
-# ============================================================
+TASK [cilium : Verify Helm is installed on RKE2 master] **************************************************************************************************************************************************************
+fatal: [master01]: FAILED! => {"changed": false, "cmd": "helm version --short", "msg": "[Errno 2] No such file or directory: b'helm'", "rc": 2, "stderr": "", "stderr_lines": [], "stdout": "", "stdout_lines": []}
 
-cilium_kubeconfig: "/etc/rancher/rke2/rke2.yaml"
-cilium_kubectl: "/var/lib/rancher/rke2/bin/kubectl"
+PLAY RECAP ***********************************************************************************************************************************************************************************************************
+master01                   : ok=5    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
 
 
