@@ -29,6 +29,13 @@ ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
 
 
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -m debug \
+  -a '{"msg":"work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}"}'
+
+
+
 
 
 
