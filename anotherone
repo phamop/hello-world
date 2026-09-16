@@ -1,7 +1,40 @@
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -m debug \
-  -a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}'
+ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}'
+[WARNING]: While constructing a mapping from /home/ooridota/nonprd/inventory/dev/group_vars/all.yml, line 1, column 1, found a duplicate dict key (cilium_kubeconfig). Using last defined value only.
+[WARNING]: While constructing a mapping from /home/ooridota/nonprd/inventory/dev/group_vars/all.yml, line 1, column 1, found a duplicate dict key (cilium_kubectl). Using last defined value only.
+An exception occurred during task execution. To see the full traceback, use -vvv. The error was: NoneType: None
+master01 | FAILED! => {
+    "changed": false,
+    "msg": "Unsupported parameters for (debug) module: crds, values. Supported parameters include: msg, var, verbosity."
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}' -vvv
+ansible [core 2.16.3]
+  config file = /home/ooridota/nonprd/ansible.cfg
+  configured module search path = ['/home/ooridota/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python3/dist-packages/ansible
+  ansible collection location = /home/ooridota/.ansible/collections:/usr/share/ansible/collections
+  executable location = /usr/bin/ansible
+  python version = 3.12.3 (main, Jan 22 2026, 20:57:42) [GCC 13.3.0] (/usr/bin/python3)
+  jinja version = 3.1.2
+  libyaml = True
+Using /home/ooridota/nonprd/ansible.cfg as config file
+host_list declined parsing /home/ooridota/nonprd/inventory/dev/hosts.ini as it did not pass its verify_file() method
+script declined parsing /home/ooridota/nonprd/inventory/dev/hosts.ini as it did not pass its verify_file() method
+auto declined parsing /home/ooridota/nonprd/inventory/dev/hosts.ini as it did not pass its verify_file() method
+yaml declined parsing /home/ooridota/nonprd/inventory/dev/hosts.ini as it did not pass its verify_file() method
+Parsed /home/ooridota/nonprd/inventory/dev/hosts.ini inventory source with ini plugin
+Skipping callback 'default', as we already have a stdout callback.
+Skipping callback 'minimal', as we already have a stdout callback.
+Skipping callback 'oneline', as we already have a stdout callback.
+[WARNING]: While constructing a mapping from /home/ooridota/nonprd/inventory/dev/group_vars/all.yml, line 1, column 1, found a duplicate dict key (cilium_kubeconfig). Using last defined value only.
+[WARNING]: While constructing a mapping from /home/ooridota/nonprd/inventory/dev/group_vars/all.yml, line 1, column 1, found a duplicate dict key (cilium_kubectl). Using last defined value only.
+The full traceback is:
+NoneType: None
+master01 | FAILED! => {
+    "changed": false,
+    "msg": "Unsupported parameters for (debug) module: crds, values. Supported parameters include: msg, var, verbosity."
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
 
 
 
