@@ -1,16 +1,15 @@
-cat >> inventory/dev/group_vars/all.yml <<'EOF'
 
-# ============================================================
-# Cilium paths
-# ============================================================
+TASK [cilium : Fail if Cilium values file is missing] ****************************************************************************************************************************************************************
+fatal: [master01]: FAILED! => {
+    "assertion": "cilium_values_stat.stat.exists",
+    "changed": false,
+    "evaluated_to": false,
+    "msg": "Cilium values file is missing or empty: /var/tmp/cilium/cilium-values.yaml\n"
+}
 
-cilium_work_dir: "/var/tmp/cilium"
-cilium_values_file: "/var/tmp/cilium/cilium-values.yaml"
-cilium_crds_path: "/var/tmp/cilium/crds"
+PLAY RECAP ***********************************************************************************************************************************************************************************************************
+master01                   : ok=14   changed=4    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
 
-cilium_kubeconfig: "/etc/rancher/rke2/rke2.yaml"
-cilium_kubectl: "/var/lib/rancher/rke2/bin/kubectl"
-EOF
 
 
 
