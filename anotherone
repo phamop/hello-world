@@ -1,13 +1,120 @@
-cat >> inventory/dev/group_vars/all.yml <<'EOF'
+Yes — that task can legitimately take several minutes because your Helm command includes:
 
-# ============================================================
-# Cilium Helm configuration
-# ============================================================
+```yaml
+--wait
+--timeout 10m
+```
 
-cilium_release_name: "cilium"
-cilium_namespace: "kube-system"
-cilium_chart_name: "helm-virtual/cilium"
-EOF
+So Ansible will sit on:
+
+```text
+TASK [cilium : Install or upgrade Cilium from Artifactory]
+```
+
+until Helm sees the Cilium resources become ready, or the 10-minute timeout is reached.
+
+While it is running, open another terminal and check what is happening on `master01`.
+
+First, check whether Helm created the release:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'KUBECONFIG=/etc/rancher/rke2/rke2.yaml /usr/bin/helm list -A'
+```
+
+Then inspect Cilium pods:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -n kube-system -o wide | grep -i cilium'
+```
+
+Also check all cluster pods:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -A -o wide'
+```
+
+And nodes:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
+```
+
+If Cilium pods exist but are not becoming `Running`, inspect them:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -n kube-system -l k8s-app=cilium'
+```
+
+Then describe one failing pod:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml describe pod -n kube-system $(/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -n kube-system -l k8s-app=cilium -o jsonpath="{.items[0].metadata.name}")'
+```
+
+Also check recent events because image-pull or CNI errors will show up there:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get events -A --sort-by=.lastTimestamp | tail -50'
+```
+
+The important distinction is:
+
+```text
+No Cilium pods at all
+→ Helm may still be pulling/rendering/chart processing
+
+Cilium pods Pending/ImagePullBackOff
+→ registry / image / scheduling issue
+
+Cilium pods CrashLoopBackOff
+→ Cilium config problem
+
+Cilium pods Running but Helm still waiting
+→ another resource such as cilium-operator is not Ready
+```
+
+Because your cluster previously had all three nodes `NotReady` due to no CNI, it is normal for this first Cilium install to take longer than later upgrades.
+
+If you want to see exactly what Helm itself is waiting on, run:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'KUBECONFIG=/etc/rancher/rke2/rke2.yaml /usr/bin/helm status cilium -n kube-system'
+```
+
+That is the best command to run now while the Ansible task is still sitting there.
+
 
 
 
