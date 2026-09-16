@@ -1,61 +1,265 @@
- cat  roles/kubeconfig/tasks/main.yml
+This role is logically valid, but the `slurp → copy(content=...) → delegate_to: localhost` pattern is more complicated than necessary, and the fact that `/tmp/rke2-kubeconfig.yaml` never appears means the second task is not completing.
+
+The likely problem is on the **delegated localhost execution**, not on RKE2.
+
+Your current flow is:
+
+```text
+master01
+   │
+   ├─ slurp /etc/rancher/rke2/rke2.yaml
+   │      ↓ base64
+   │
+Ansible controller
+   │
+   └─ Jinja decode + regex_replace + copy
+          ↓
+     /tmp/rke2-kubeconfig.yaml
+```
+
+I would replace the whole thing with `fetch`. It is simpler and purpose-built for remote → controller transfers.
+
+Use this for `roles/kubeconfig/tasks/main.yml`:
+
+```yaml
 ---
-- name: Read RKE2 kubeconfig from master
-  slurp:
-    src: "/etc/rancher/rke2/rke2.yaml"
-  register: rke2_kubeconfig_raw
-  become: yes
+- name: Fetch RKE2 kubeconfig from master
+  ansible.builtin.fetch:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: /tmp/rke2-kubeconfig.yaml
+    flat: true
+  become: true
 
-- name: Write kubeconfig to Ansible controller
-  copy:
-    content: "{{ rke2_kubeconfig_raw.content | b64decode | regex_replace('https://127.0.0.1:6443', 'https://' + hostvars[groups['masters'][0]]['ansible_host'] + ':6443') }}"
-    dest: "/tmp/rke2-kubeconfig.yaml"
-    mode: "0600"
+- name: Update Kubernetes API endpoint in local kubeconfig
+  ansible.builtin.replace:
+    path: /tmp/rke2-kubeconfig.yaml
+    regexp: 'https://127\.0\.0\.1:6443'
+    replace: "https://{{ hostvars[groups['masters'][0]]['ansible_host'] }}:6443"
   delegate_to: localhost
-  become: no
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ls  -ltr  /tmp/rke2-kubeconfig.yaml
-ls: cannot access '/tmp/rke2-kubeconfig.yaml': No such file or directory
+  become: false
+```
 
+That removes `slurp`, Base64 decoding, and the delegated `copy`.
 
-tree roles/cilium
-roles/cilium
-├── defaults
-│   └── main.yml
-├── files
-│   ├── cilium-values.yaml
-│   └── crds
-│       ├── gateway.networking.k8s.io_gatewayclasses.yaml
-│       ├── gateway.networking.k8s.io_gateways.yaml
-│       ├── gateway.networking.k8s.io_grpcroutes.yaml
-│       ├── gateway.networking.k8s.io_httproutes.yaml
-│       ├── gateway.networking.k8s.io_referencegrants.yaml
-│       └── gateway.networking.k8s.io_tlsroutes.yaml
-└── tasks
-    └── main.yml
+Before changing it, though, we can prove exactly where the problem is.
 
-5 directories, 9 files
+Run the first task manually:
 
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m slurp \
+  -a 'src=/etc/rancher/rke2/rke2.yaml'
+```
 
-cat  playbooks/deploy-cilium.yml
+If that returns immediately, remote access is fine.
+
+Then test localhost itself:
+
+```bash
+ansible localhost \
+  -i inventory/dev/hosts.ini \
+  -m ping \
+  -c local
+```
+
+Expected:
+
+```text
+localhost | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+Also check your local Python:
+
+```bash
+which python3
+python3 --version
+```
+
+Your `group_vars/all.yml` contains:
+
+```yaml
+ansible_python_interpreter: "/usr/bin/python3"
+```
+
+So make sure the jump server actually has:
+
+```bash
+/usr/bin/python3
+```
+
+Check:
+
+```bash
+ls -l /usr/bin/python3
+```
+
+Another very useful test is to isolate the local `copy` module:
+
+```bash
+ansible localhost \
+  -i inventory/dev/hosts.ini \
+  -c local \
+  -m copy \
+  -a 'content="test" dest=/tmp/ansible-local-test mode=0600'
+```
+
+Then:
+
+```bash
+cat /tmp/ansible-local-test
+```
+
+If **that hangs too**, then the problem isn't the kubeconfig at all; it's Ansible's localhost execution.
+
+If it works, test the `hostvars` expression:
+
+```bash
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -m debug \
+  -a "msg={{ hostvars[groups['masters'][0]]['ansible_host'] }}"
+```
+
+You should get:
+
+```text
+10.174.161.22
+```
+
+If `ansible_host` is missing, Ansible would normally fail rather than hang, but we should confirm it anyway.
+
+I would also simplify your playbook slightly. Since the first play already targets only the first master:
+
+```yaml
+- name: Fetch kubeconfig from RKE2 master
+  hosts: "{{ groups['masters'][0] }}"
+```
+
+there's no need for `run_once`.
+
+Then your complete clean version becomes:
+
+```yaml
 ---
 - name: Fetch kubeconfig from RKE2 master
   hosts: "{{ groups['masters'][0] }}"
-  become: yes
+  gather_facts: false
+  become: true
   roles:
     - kubeconfig
 
-- name: Install/Upgrade Cilium on RKE2 Cluster
+- name: Install or upgrade Cilium on RKE2 cluster
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
+
   vars:
-    local_kubeconfig: "/tmp/rke2-kubeconfig.yaml"
+    local_kubeconfig: /tmp/rke2-kubeconfig.yaml
     artifactory_user: "{{ artifactory_username }}"
-    artifactory_password: "{{ artifactory_password }}"
+
   environment:
     KUBECONFIG: "{{ local_kubeconfig }}"
+
   roles:
     - cilium
+```
+
+I would remove this:
+
+```yaml
+artifactory_password: "{{ artifactory_password }}"
+```
+
+because it is self-referential and unnecessary. Just use `artifactory_password` directly wherever the Cilium role needs it.
+
+One more improvement: since your Cilium role is going to depend on this file, verify it immediately after fetching:
+
+```yaml
+- name: Verify local kubeconfig exists
+  ansible.builtin.stat:
+    path: /tmp/rke2-kubeconfig.yaml
+  delegate_to: localhost
+  become: false
+  register: kubeconfig_stat
+
+- name: Fail if kubeconfig was not downloaded
+  ansible.builtin.assert:
+    that:
+      - kubeconfig_stat.stat.exists
+      - kubeconfig_stat.stat.size > 0
+    fail_msg: "RKE2 kubeconfig was not downloaded to the Ansible controller."
+  delegate_to: localhost
+  become: false
+```
+
+So the full `roles/kubeconfig/tasks/main.yml` I recommend is:
+
+```yaml
+---
+- name: Fetch RKE2 kubeconfig from master
+  ansible.builtin.fetch:
+    src: /etc/rancher/rke2/rke2.yaml
+    dest: /tmp/rke2-kubeconfig.yaml
+    flat: true
+  become: true
+
+- name: Update Kubernetes API endpoint in local kubeconfig
+  ansible.builtin.replace:
+    path: /tmp/rke2-kubeconfig.yaml
+    regexp: 'https://127\.0\.0\.1:6443'
+    replace: "https://{{ hostvars[groups['masters'][0]]['ansible_host'] }}:6443"
+  delegate_to: localhost
+  become: false
+
+- name: Verify local kubeconfig
+  ansible.builtin.stat:
+    path: /tmp/rke2-kubeconfig.yaml
+  delegate_to: localhost
+  become: false
+  register: kubeconfig_stat
+
+- name: Validate downloaded kubeconfig
+  ansible.builtin.assert:
+    that:
+      - kubeconfig_stat.stat.exists
+      - kubeconfig_stat.stat.size > 0
+    fail_msg: "RKE2 kubeconfig does not exist or is empty."
+  delegate_to: localhost
+  become: false
+```
+
+Then test **only the first play** before running Cilium:
+
+```bash
+ansible-playbook \
+  -i inventory/dev/hosts.ini \
+  playbooks/deploy-cilium.yml \
+  --limit master01 \
+  -vv
+```
+
+But note: because the second play targets `localhost`, `--limit master01` may exclude it, which is exactly what we want for this diagnostic.
+
+Afterward:
+
+```bash
+ls -lh /tmp/rke2-kubeconfig.yaml
+grep 'server:' /tmp/rke2-kubeconfig.yaml
+```
+
+You want:
+
+```text
+server: https://10.174.161.22:6443
+```
+
+Once that works, run the full Cilium playbook normally.
+
 
 
 
