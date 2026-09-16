@@ -1,4 +1,23 @@
- tree roles/cilium
+ cat  roles/kubeconfig/tasks/main.yml
+---
+- name: Read RKE2 kubeconfig from master
+  slurp:
+    src: "/etc/rancher/rke2/rke2.yaml"
+  register: rke2_kubeconfig_raw
+  become: yes
+
+- name: Write kubeconfig to Ansible controller
+  copy:
+    content: "{{ rke2_kubeconfig_raw.content | b64decode | regex_replace('https://127.0.0.1:6443', 'https://' + hostvars[groups['masters'][0]]['ansible_host'] + ':6443') }}"
+    dest: "/tmp/rke2-kubeconfig.yaml"
+    mode: "0600"
+  delegate_to: localhost
+  become: no
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ls  -ltr  /tmp/rke2-kubeconfig.yaml
+ls: cannot access '/tmp/rke2-kubeconfig.yaml': No such file or directory
+
+
+tree roles/cilium
 roles/cilium
 ├── defaults
 │   └── main.yml
