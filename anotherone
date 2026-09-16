@@ -60,7 +60,61 @@ NAME       STATUS   ROLES                AGE     VERSION          INTERNAL-IP   
 master01   Ready    control-plane,etcd   3h51m   v1.35.3+rke2r1   10.174.161.22   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
 master02   Ready    control-plane,etcd   3h10m   v1.35.3+rke2r1   10.174.161.23   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
 master03   Ready    control-plane,etcd   3h10m   v1.35.3+rke2r1   10.174.161.24   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -A -o wide'
+master01 | CHANGED | rc=0 >>
+NAMESPACE      NAME                                                   READY   STATUS                  RESTARTS        AGE     IP              NODE       NOMINATED NODE   READINESS GATES
+cilium-spire   spire-agent-6446q                                      0/1     Init:CrashLoopBackOff   6 (4m37s ago)   17m     10.174.161.22   master01   <none>           <none>
+cilium-spire   spire-agent-m92qx                                      0/1     Init:CrashLoopBackOff   6 (4m37s ago)   17m     10.174.161.24   master03   <none>           <none>
+cilium-spire   spire-agent-w9qs4                                      0/1     Init:CrashLoopBackOff   6 (4m50s ago)   17m     10.174.161.23   master02   <none>           <none>
+cilium-spire   spire-server-0                                         0/2     Pending                 0               17m     <none>          <none>     <none>           <none>
+kube-system    cilium-6pwpp                                           1/1     Running                 0               17m     10.174.161.24   master03   <none>           <none>
+kube-system    cilium-envoy-fw4wf                                     1/1     Running                 0               17m     10.174.161.24   master03   <none>           <none>
+kube-system    cilium-envoy-gbc8g                                     1/1     Running                 0               17m     10.174.161.22   master01   <none>           <none>
+kube-system    cilium-envoy-mrp7q                                     1/1     Running                 0               17m     10.174.161.23   master02   <none>           <none>
+kube-system    cilium-fxrdf                                           1/1     Running                 0               17m     10.174.161.23   master02   <none>           <none>
+kube-system    cilium-operator-7f4c45764d-gxntx                       1/1     Running                 0               17m     10.174.161.24   master03   <none>           <none>
+kube-system    cilium-operator-7f4c45764d-q4stx                       1/1     Running                 0               17m     10.174.161.22   master01   <none>           <none>
+kube-system    cilium-p2hfw                                           1/1     Running                 0               17m     10.174.161.22   master01   <none>           <none>
+kube-system    cloud-controller-manager-master01                      1/1     Running                 1 (3h52m ago)   3h52m   10.174.161.22   master01   <none>           <none>
+kube-system    cloud-controller-manager-master02                      1/1     Running                 0               3h11m   10.174.161.23   master02   <none>           <none>
+kube-system    cloud-controller-manager-master03                      1/1     Running                 0               3h11m   10.174.161.24   master03   <none>           <none>
+kube-system    etcd-master01                                          1/1     Running                 0               3h52m   10.174.161.22   master01   <none>           <none>
+kube-system    etcd-master02                                          1/1     Running                 0               3h11m   10.174.161.23   master02   <none>           <none>
+kube-system    etcd-master03                                          1/1     Running                 0               3h11m   10.174.161.24   master03   <none>           <none>
+kube-system    helm-install-rke2-coredns-jksdl                        0/1     Completed               0               3h52m   10.174.161.22   master01   <none>           <none>
+kube-system    helm-install-rke2-ingress-nginx-l7lmn                  0/1     Completed               0               3h52m   10.244.2.209    master01   <none>           <none>
+kube-system    helm-install-rke2-metrics-server-85drv                 0/1     Completed               0               3h52m   10.244.2.43     master01   <none>           <none>
+kube-system    helm-install-rke2-runtimeclasses-x96h7                 0/1     Completed               0               3h52m   10.244.2.150    master01   <none>           <none>
+kube-system    helm-install-rke2-snapshot-controller-crd-2v8cl        0/1     Completed               0               3h52m   10.244.2.130    master01   <none>           <none>
+kube-system    helm-install-rke2-snapshot-controller-ztz8k            0/1     Completed               1               3h52m   10.244.2.182    master01   <none>           <none>
+kube-system    hubble-relay-bdbfb59-mwc8k                             1/1     Running                 0               17m     10.244.2.9      master01   <none>           <none>
+kube-system    hubble-ui-5d45b9c77b-ptns4                             2/2     Running                 0               17m     10.244.2.121    master01   <none>           <none>
+kube-system    kube-apiserver-master01                                1/1     Running                 0               3h52m   10.174.161.22   master01   <none>           <none>
+kube-system    kube-apiserver-master02                                1/1     Running                 0               3h11m   10.174.161.23   master02   <none>           <none>
+kube-system    kube-apiserver-master03                                1/1     Running                 0               3h11m   10.174.161.24   master03   <none>           <none>
+kube-system    kube-controller-manager-master01                       1/1     Running                 0               3h52m   10.174.161.22   master01   <none>           <none>
+kube-system    kube-controller-manager-master02                       1/1     Running                 0               3h11m   10.174.161.23   master02   <none>           <none>
+kube-system    kube-controller-manager-master03                       1/1     Running                 0               3h11m   10.174.161.24   master03   <none>           <none>
+kube-system    kube-proxy-master01                                    1/1     Running                 0               3h52m   10.174.161.22   master01   <none>           <none>
+kube-system    kube-proxy-master02                                    1/1     Running                 0               3h11m   10.174.161.23   master02   <none>           <none>
+kube-system    kube-proxy-master03                                    1/1     Running                 0               3h11m   10.174.161.24   master03   <none>           <none>
+kube-system    kube-scheduler-master01                                1/1     Running                 0               3h52m   10.174.161.22   master01   <none>           <none>
+kube-system    kube-scheduler-master02                                1/1     Running                 0               3h11m   10.174.161.23   master02   <none>           <none>
+kube-system    kube-scheduler-master03                                1/1     Running                 0               3h11m   10.174.161.24   master03   <none>           <none>
+kube-system    rke2-coredns-rke2-coredns-78c46898db-jd6xm             1/1     Running                 0               3h52m   10.244.2.213    master01   <none>           <none>
+kube-system    rke2-coredns-rke2-coredns-78c46898db-rltqm             1/1     Running                 0               16m     10.244.1.214    master02   <none>           <none>
+kube-system    rke2-coredns-rke2-coredns-autoscaler-f85f87746-5swrz   1/1     Running                 0               3h52m   10.244.2.184    master01   <none>           <none>
+kube-system    rke2-ingress-nginx-controller-2x45t                    1/1     Running                 0               16m     10.244.2.167    master01   <none>           <none>
+kube-system    rke2-ingress-nginx-controller-wnwpm                    1/1     Running                 0               16m     10.244.0.75     master03   <none>           <none>
+kube-system    rke2-ingress-nginx-controller-wrr5p                    1/1     Running                 0               16m     10.244.1.133    master02   <none>           <none>
+kube-system    rke2-metrics-server-769f546ff8-vzn2x                   1/1     Running                 0               16m     10.244.2.198    master01   <none>           <none>
+kube-system    rke2-snapshot-controller-858d65d54-4r6zs               1/1     Running                 0               16m     10.244.1.116    master02   <none>           <none>
 ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
 
 
 
