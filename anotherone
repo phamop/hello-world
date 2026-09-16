@@ -72,8 +72,6 @@ If that passes, the YAML quoting issue is resolved. The multiline usages at line
 
 
 
-
-
 cat > roles/cilium/tasks/main.yml <<'EOF'
 ---
 # ============================================================
