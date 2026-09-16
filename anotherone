@@ -1,51 +1,15 @@
-You fixed line 47, but line 181 has the exact same quoting problem.
+TASK [cilium : Fail if Cilium values file is missing] *********************************************************************************************************************************************************************************************
+fatal: [master01]: FAILED! => {
+    "assertion": "cilium_values_stat.stat.exists",
+    "changed": false,
+    "evaluated_to": false,
+    "msg": "Cilium values file is missing or empty: /var/tmp/cilium/cilium-values.yaml\n"
+}
 
-It currently has:
+PLAY RECAP ****************************************************************************************************************************************************************************************************************************************
+master01                   : ok=14   changed=4    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
 
-```yaml
-cmd: "{{ helm_binary }}" repo update
-```
-
-It must be:
-
-```yaml
-cmd: "{{ helm_binary }} repo update"
-```
-
-Fix it with:
-
-```bash
-sed -i 's#cmd: "{{ helm_binary }}" repo update#cmd: "{{ helm_binary }} repo update"#' \
-  roles/cilium/tasks/main.yml
-```
-
-Then verify again:
-
-```bash
-grep -nE '\bhelm\b|helm_binary' roles/cilium/tasks/main.yml
-```
-
-You want:
-
-```text
-47:    cmd: "{{ helm_binary }} version --short"
-170:      {{ helm_binary }} repo add helm-virtual
-181:    cmd: "{{ helm_binary }} repo update"
-193:      {{ helm_binary }} show chart
-242:      {{ helm_binary }} upgrade --install
-```
-
-Then run:
-
-```bash
-ansible-playbook \
-  -i inventory/dev/hosts.ini \
-  playbooks/deploy-cilium.yml \
-  --syntax-check
-```
-
-If that passes, the YAML quoting issue is resolved. The multiline usages at lines 170, 193, and 242 are fine because they are under `cmd: >`, so only the single-line `cmd:` entries needed the full command inside one quoted string.
-
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
 
 
