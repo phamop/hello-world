@@ -1,3 +1,18 @@
+the user has been defined in env variable but am still getting this error
+
+TASK [cilium : Add Artifactory Helm repo (helm-virtual)] *************************************************************************************************************************************************************
+fatal: [master01]: FAILED! => {"msg": "The task includes an option with an undefined variable. The error was: 'artifactory_user' is undefined. 'artifactory_user' is undefined\n\nThe error appears to be in '/home/ooridota/nonprd/roles/cilium/tasks/main.yml': line 17, column 3, but may\nbe elsewhere in the file depending on the exact syntax problem.\n\nThe offending line appears to be:\n\n\n- name: Add Artifactory Helm repo (helm-virtual)\n  ^ here\n"}
+
+PLAY RECAP ***********************************************************************************************************************************************************************************************************
+master01                   : ok=0    changed=0    unreachable=0    failed=1    skipped=3    rescued=0    ignored=0
+
+
+
+
+
+
+
+
 ---
 - name: Install or upgrade Cilium on RKE2 cluster
   hosts: "{{ groups['masters'][0] }}"
