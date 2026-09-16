@@ -1,13 +1,37 @@
-the user has been defined in env variable but am still getting this error
+ansible-playbook -i inventory/dev/hosts.ini  playbooks/deploy-cilium.yml   --check --diff
+
+PLAY [Install or upgrade Cilium on RKE2 cluster] *********************************************************************************************************************************************************************
+
+TASK [cilium : Verify Helm is installed on Ansible controller] *******************************************************************************************************************************************************
+skipping: [master01]
+
+TASK [cilium : Verify kubectl can reach the cluster] *****************************************************************************************************************************************************************
+skipping: [master01]
+
+TASK [cilium : Install Cilium CRDs] **********************************************************************************************************************************************************************************
+skipping: [master01]
 
 TASK [cilium : Add Artifactory Helm repo (helm-virtual)] *************************************************************************************************************************************************************
-fatal: [master01]: FAILED! => {"msg": "The task includes an option with an undefined variable. The error was: 'artifactory_user' is undefined. 'artifactory_user' is undefined\n\nThe error appears to be in '/home/ooridota/nonprd/roles/cilium/tasks/main.yml': line 17, column 3, but may\nbe elsewhere in the file depending on the exact syntax problem.\n\nThe offending line appears to be:\n\n\n- name: Add Artifactory Helm repo (helm-virtual)\n  ^ here\n"}
+skipping: [master01]
+
+TASK [cilium : Update Helm repos] ************************************************************************************************************************************************************************************
+skipping: [master01]
+
+TASK [cilium : Create cilium-spire namespace] ************************************************************************************************************************************************************************
+skipping: [master01]
+
+TASK [cilium : Install/Upgrade Cilium via Helm (from Artifactory helm-virtual)] **************************************************************************************************************************************
+skipping: [master01]
+
+TASK [cilium : Show Cilium helm output] ******************************************************************************************************************************************************************************
+ok: [master01] => {
+    "cilium_helm_apply.stdout_lines": []
+}
 
 PLAY RECAP ***********************************************************************************************************************************************************************************************************
-master01                   : ok=0    changed=0    unreachable=0    failed=1    skipped=3    rescued=0    ignored=0
+master01                   : ok=1    changed=0    unreachable=0    failed=0    skipped=7    rescued=0    ignored=0
 
-
-
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
 
 
