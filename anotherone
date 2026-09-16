@@ -1,23 +1,32 @@
- ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}'
-An exception occurred during task execution. To see the full traceback, use -vvv. The error was: NoneType: None
-master01 | FAILED! => {
-    "changed": false,
-    "msg": "Unsupported parameters for (debug) module: crds, values. Supported parameters include: msg, var, verbosity."
-}
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}'
-An exception occurred during task execution. To see the full traceback, use -vvv. The error was: NoneType: None
-master01 | FAILED! => {
-    "changed": false,
-    "msg": "Unsupported parameters for (debug) module: crds, values. Supported parameters include: msg, var, verbosity."
-}
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
-
-
  grep -nE 'cilium_kubeconfig|cilium_kubectl' \
   inventory/dev/group_vars/all.yml
 29:cilium_kubeconfig: "/etc/rancher/rke2/rke2.yaml"
 30:cilium_kubectl: "/var/lib/rancher/rke2/bin/kubectl"
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'var=cilium_work_dir'
+master01 | SUCCESS => {
+    "cilium_work_dir": "/var/tmp/cilium"
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'var=cilium_values_file'
+master01 | SUCCESS => {
+    "cilium_values_file": "/var/tmp/cilium/cilium-values.yaml"
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'var=cilium_crds_path'
+master01 | SUCCESS => {
+    "cilium_crds_path": "/var/tmp/cilium/crds"
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ tail inventory/dev/group_vars/all.yml
+helm_binary: "/usr/local/bin/helm"
+
+# Cilium paths
+
+cilium_work_dir: "/var/tmp/cilium"
+cilium_values_file: "/var/tmp/cilium/cilium-values.yaml"
+cilium_crds_path: "/var/tmp/cilium/crds"
+
+cilium_kubeconfig: "/etc/rancher/rke2/rke2.yaml"
+cilium_kubectl: "/var/lib/rancher/rke2/bin/kubectl"
 ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
 
 
 
