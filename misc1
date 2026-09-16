@@ -1,20 +1,20 @@
-#!/usr/bin/env bash
+---
+- name: Install or upgrade Cilium on RKE2 cluster
+  hosts: "{{ groups['masters'][0] }}"
+  gather_facts: false
+  become: true
 
-set -e
+  vars:
+    kubeconfig_path: "/etc/rancher/rke2/rke2.yaml"
 
-echo "=== Artifactory Environment Setup ==="
+    artifactory_username: "{{ lookup('env', 'ARTIFACTORY_USERNAME') }}"
+    artifactory_password: "{{ lookup('env', 'ARTIFACTORY_PASSWORD') }}"
 
-read -rp "ARTIFACTORY_USERNAME: " ARTIFACTORY_USERNAME
-read -rsp "ARTIFACTORY_PASSWORD: " ARTIFACTORY_PASSWORD
-echo
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
 
-export ARTIFACTORY_USERNAME
-export ARTIFACTORY_PASSWORD
-
-echo
-echo "Environment variables loaded:"
-echo "ARTIFACTORY_USERNAME=${ARTIFACTORY_USERNAME}"
-echo "ARTIFACTORY_PASSWORD=********"
+  roles:
+    - cilium
 
 
 
