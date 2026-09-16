@@ -1,4 +1,4 @@
- grep -nE 'cilium_kubeconfig|cilium_kubectl' \
+grep -nE 'cilium_kubeconfig|cilium_kubectl' \
   inventory/dev/group_vars/all.yml
 29:cilium_kubeconfig: "/etc/rancher/rke2/rke2.yaml"
 30:cilium_kubectl: "/var/lib/rancher/rke2/bin/kubectl"
@@ -25,14 +25,15 @@ cilium_crds_path: "/var/tmp/cilium/crds"
 
 cilium_kubeconfig: "/etc/rancher/rke2/rke2.yaml"
 cilium_kubectl: "/var/lib/rancher/rke2/bin/kubectl"
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
-
-
-
-ansible master01 \
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
   -i inventory/dev/hosts.ini \
   -m debug \
   -a '{"msg":"work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}"}'
+master01 | SUCCESS => {
+    "msg": "work_dir=/var/tmp/cilium, values=/var/tmp/cilium/cilium-values.yaml, crds=/var/tmp/cilium/crds"
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ tail inventory/dev/group_vars/all.yml
+
 
 
 
