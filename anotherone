@@ -1,28 +1,32 @@
-ansible-playbook \
-  -i inventory/dev/hosts.ini \
-  playbooks/deploy-cilium.yml \
-  --syntax-check
+~ # /usr/local/bin/helm version --shor
+-bash: /usr/local/bin/helm: No such file or directory
+ca-gat-dc1-nosd-stg-vm-pectr-01:~ # which  helm
+/usr/bin/helm
+ca-gat-dc1-nosd-stg-vm-pectr-01:~ # /usr/bin/helm version short
+Error: "helm version" accepts no arguments
 
+Usage:  helm version [flags]
+ca-gat-dc1-nosd-stg-vm-pectr-01:~ # /usr/bin/helm version --short
+v3.18.4+gd80839c
+ca-gat-dc1-nosd-stg-vm-pectr-01:~ # exit
+logout
+ooridota@ca-gat-dc1-nosd-stg-vm-pectr-01:~> exit
+logout
+Connection to 10.174.161.22 closed.
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ vi inventory/dev/group_vars/all.yml
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -b   -m command   -a '/usr/local/bin/helm version --short'
+master01 | FAILED | rc=2 >>
+[Errno 2] No such file or directory: b'/usr/local/bin/helm'
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ vi inventory/dev/group_vars/all.yml
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -b   -m command   -a '/usr/local/bin/helm version --short'
+master01 | FAILED | rc=2 >>
+[Errno 2] No such file or directory: b'/usr/local/bin/helm'
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ grep helm inventory/dev/group_vars/all.yml
+helm_binary: "/usr/bin/helm"
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ which helm
+/usr/local/bin/helm
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
-ansible master01 \
-  -i inventory/dev/hosts.ini \
-  -b \
-  -m command \
-  -a '/usr/local/bin/helm version --short'
-
-
-
-
-
-
-sed -i \
-  's/cmd: helm /cmd: "{{ helm_binary }}" /g; s/^      helm /      {{ helm_binary }} /g' \
-  roles/cilium/tasks/main.yml grep -nE '\bhelm\b|helm_binary' roles/cilium/tasks/main.yml
-47:    cmd: "{{ helm_binary }}" version --short
-170:      {{ helm_binary }} repo add helm-virtual
-181:    cmd: "{{ helm_binary }}" repo update
-193:      {{ helm_binary }} show chart
-242:      {{ helm_binary }} upgrade --install
 
 
 
