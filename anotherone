@@ -1,4 +1,9 @@
-grep -nE '\bhelm\b|helm_binary' roles/cilium/tasks/main.yml
+ grep -nE '\bhelm\b|helm_binary' roles/cilium/tasks/main.yml
+47:    cmd: helm version --short
+170:      helm repo add helm-virtual
+181:    cmd: helm repo update
+193:      helm show chart
+242:      helm upgrade --install
 
 
 
