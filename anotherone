@@ -1,41 +1,51 @@
- sed -i 's#cmd: "{{ helm_binary }}" version --short#cmd: "{{ helm_binary }} version --short"#' \
+You fixed line 47, but line 181 has the exact same quoting problem.
+
+It currently has:
+
+```yaml
+cmd: "{{ helm_binary }}" repo update
+```
+
+It must be:
+
+```yaml
+cmd: "{{ helm_binary }} repo update"
+```
+
+Fix it with:
+
+```bash
+sed -i 's#cmd: "{{ helm_binary }}" repo update#cmd: "{{ helm_binary }} repo update"#' \
   roles/cilium/tasks/main.yml
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ grep -nE '\bhelm\b|helm_binary' roles/cilium/tasks/main.yml
+```
+
+Then verify again:
+
+```bash
+grep -nE '\bhelm\b|helm_binary' roles/cilium/tasks/main.yml
+```
+
+You want:
+
+```text
 47:    cmd: "{{ helm_binary }} version --short"
 170:      {{ helm_binary }} repo add helm-virtual
-181:    cmd: "{{ helm_binary }}" repo update
+181:    cmd: "{{ helm_binary }} repo update"
 193:      {{ helm_binary }} show chart
 242:      {{ helm_binary }} upgrade --install
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible-playbook \
+```
+
+Then run:
+
+```bash
+ansible-playbook \
   -i inventory/dev/hosts.ini \
   playbooks/deploy-cilium.yml \
   --syntax-check
-ERROR! We were unable to read either as JSON nor YAML, these are the errors we got from each:
-JSON: Expecting value: line 1 column 1 (char 0)
+```
 
-Syntax Error while loading YAML.
-  did not find expected key
+If that passes, the YAML quoting issue is resolved. The multiline usages at lines 170, 193, and 242 are fine because they are under `cmd: >`, so only the single-line `cmd:` entries needed the full command inside one quoted string.
 
-The error appears to be in '/home/ooridota/nonprd/roles/cilium/tasks/main.yml': line 181, column 30, but may
-be elsewhere in the file depending on the exact syntax problem.
-
-The offending line appears to be:
-
-  ansible.builtin.command:
-    cmd: "{{ helm_binary }}" repo update
-                             ^ here
-We could be wrong, but this one looks like it might be an issue with
-missing quotes. Always quote template expression brackets when they
-start a value. For instance:
-
-    with_items:
-      - {{ foo }}
-
-Should be written as:
-
-    with_items:
-      - "{{ foo }}"
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
 
 
