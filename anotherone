@@ -1,4 +1,17 @@
--a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}'
+ ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}'
+An exception occurred during task execution. To see the full traceback, use -vvv. The error was: NoneType: None
+master01 | FAILED! => {
+    "changed": false,
+    "msg": "Unsupported parameters for (debug) module: crds, values. Supported parameters include: msg, var, verbosity."
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -m debug   -a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}'
+An exception occurred during task execution. To see the full traceback, use -vvv. The error was: NoneType: None
+master01 | FAILED! => {
+    "changed": false,
+    "msg": "Unsupported parameters for (debug) module: crds, values. Supported parameters include: msg, var, verbosity."
+}
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
 
 
 
