@@ -1,3 +1,358 @@
+Then we have learned something important: **the kubeconfig role is not the root cause**. If even a direct local `ping` hangs with `ansible_become=false`, the problem is in Ansible's **local execution environment/configuration**, not RKE2.
+
+Do not change the kubeconfig role yet. Isolate Ansible completely from your project inventory and variables.
+
+Run this exact command:
+
+```bash
+timeout 20 ansible localhost \
+  -i 'localhost,' \
+  -c local \
+  -m ping \
+  -e ansible_become=false \
+  -e ansible_connection=local \
+  -e ansible_python_interpreter=/usr/bin/python3 \
+  -vvv
+```
+
+The important difference is:
+
+```text
+-i 'localhost,'
+```
+
+That bypasses:
+
+```text
+inventory/dev/hosts.ini
+inventory/dev/group_vars/all.yml
+inventory/dev/host_vars/
+```
+
+entirely.
+
+If this works and returns:
+
+```text
+localhost | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+then the problem is definitely coming from your inventory/group variables.
+
+If it **still hangs**, test Ansible without requiring Python:
+
+```bash
+timeout 20 ansible localhost \
+  -i 'localhost,' \
+  -c local \
+  -m raw \
+  -a 'echo LOCAL_ANSIBLE_OK' \
+  -e ansible_become=false \
+  -vvv
+```
+
+Expected:
+
+```text
+LOCAL_ANSIBLE_OK
+```
+
+If `raw` works but `ping` hangs, the problem points toward the Python/module execution environment.
+
+Check Python:
+
+```bash
+/usr/bin/python3 --version
+/usr/bin/python3 -c 'print("PYTHON_OK")'
+```
+
+Then:
+
+```bash
+which ansible
+ansible --version
+```
+
+Pay attention to the lines showing:
+
+```text
+ansible python module location
+executable location
+python version
+config file
+```
+
+Also run:
+
+```bash
+ansible-config dump --only-changed
+```
+
+This is important because you may have something in `ansible.cfg` affecting localhost, such as:
+
+```ini
+remote_tmp
+local_tmp
+pipelining
+connection
+become
+callback_plugins
+strategy_plugins
+```
+
+Check which config file Ansible is actually using:
+
+```bash
+ansible --version | head -10
+```
+
+You may find something like:
+
+```text
+config file = /home/ooridota/nonprd/ansible.cfg
+```
+
+Then show it:
+
+```bash
+cat ansible.cfg
+```
+
+or:
+
+```bash
+grep -vE '^\s*(#|$)' ansible.cfg
+```
+
+### Also check Ansible's temporary directories
+
+Local modules are copied into temporary directories before execution. If `/tmp`, `~/.ansible/tmp`, permissions, filesystem, or mount behavior is bad, Ansible can appear to freeze.
+
+Run:
+
+```bash
+ls -ld /tmp
+ls -ld ~/.ansible
+ls -ld ~/.ansible/tmp 2>/dev/null || true
+df -h /tmp "$HOME"
+df -i /tmp "$HOME"
+```
+
+`/tmp` should normally look like:
+
+```text
+drwxrwxrwt
+```
+
+The final `t` is important.
+
+Test it:
+
+```bash
+touch /tmp/test-$USER
+rm -f /tmp/test-$USER
+```
+
+And:
+
+```bash
+mkdir -p ~/.ansible/tmp
+chmod 700 ~/.ansible/tmp
+touch ~/.ansible/tmp/test
+rm ~/.ansible/tmp/test
+```
+
+Then retry with an explicit local temp directory:
+
+```bash
+mkdir -p /tmp/ansible-local-tmp
+chmod 700 /tmp/ansible-local-tmp
+
+ANSIBLE_LOCAL_TEMP=/tmp/ansible-local-tmp \
+timeout 20 ansible localhost \
+  -i 'localhost,' \
+  -c local \
+  -m ping \
+  -e ansible_become=false \
+  -vvv
+```
+
+### Most useful diagnostic: see exactly what is hanging
+
+Start:
+
+```bash
+ansible localhost \
+  -i 'localhost,' \
+  -c local \
+  -m ping \
+  -e ansible_become=false \
+  -vvv
+```
+
+Leave that terminal hanging.
+
+Open another terminal on the jump server and run:
+
+```bash
+ps -ef --forest | grep -E '[a]nsible|[p]ython|[s]udo|[s]sh|[s]ftp|[s]cp'
+```
+
+Also:
+
+```bash
+pgrep -af ansible
+```
+
+If you see something such as:
+
+```text
+sudo ...
+```
+
+then privilege escalation is still involved somewhere.
+
+If you see:
+
+```text
+/usr/bin/python3 /home/.../.ansible/tmp/AnsiballZ_ping.py
+```
+
+then the module itself is stuck.
+
+If you see only:
+
+```text
+ansible localhost ...
+```
+
+with no child Python process, the local connection/module staging is where it is stopping.
+
+You can inspect the stuck Ansible process:
+
+```bash
+PID=$(pgrep -n -f 'ansible localhost')
+echo "$PID"
+```
+
+Then:
+
+```bash
+strace -p "$PID"
+```
+
+If `strace` isn't installed, skip that for now.
+
+### One thing in your `group_vars/all.yml` still concerns me
+
+You currently have global connection variables like:
+
+```yaml
+ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
+
+ansible_become: true
+ansible_become_method: sudo
+ansible_become_password: "{{ lookup('env', 'ANSIBLE_BECOME_PASSWORD') }}"
+```
+
+Those really should apply to your **cluster nodes**, not every host including localhost.
+
+Long-term I recommend moving them out of:
+
+```text
+inventory/dev/group_vars/all.yml
+```
+
+and into something like:
+
+```text
+inventory/dev/group_vars/rke2_cluster.yml
+```
+
+with your inventory arranged as:
+
+```ini
+[rke2_cluster:children]
+masters
+workers
+
+[masters]
+master01 ansible_host=10.174.161.22
+master02 ansible_host=10.174.161.23
+master03 ansible_host=10.174.161.24
+
+[workers]
+...
+
+[local]
+localhost ansible_connection=local
+```
+
+Then:
+
+```yaml
+# inventory/dev/group_vars/rke2_cluster.yml
+
+ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
+
+ansible_become: true
+ansible_become_method: sudo
+ansible_become_password: "{{ lookup('env', 'ANSIBLE_BECOME_PASSWORD') }}"
+
+ansible_python_interpreter: /usr/bin/python3
+```
+
+And:
+
+```yaml
+# inventory/dev/host_vars/localhost.yml
+
+ansible_connection: local
+ansible_become: false
+ansible_python_interpreter: /usr/bin/python3
+```
+
+That is a much cleaner design because credentials for your RKE2 servers never get applied to the Ansible controller.
+
+For now, though, the decisive command is this one:
+
+```bash
+timeout 20 ansible localhost \
+  -i 'localhost,' \
+  -c local \
+  -m ping \
+  -e ansible_become=false \
+  -e ansible_python_interpreter=/usr/bin/python3 \
+  -vvv
+```
+
+If **that hangs too**, paste the last ~20 lines printed by `-vvv` before it stops. That will show exactly which stage Ansible is getting stuck on.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Yes — that narrows it down nicely. The hang is very likely **not related to the kubeconfig at all**.
 
 Your global `inventory/dev/group_vars/all.yml` contains:
