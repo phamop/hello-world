@@ -1,3 +1,38 @@
+TASK [cilium : Generate cilium-spire namespace manifest] ****************************************************************************************************
+ok: [master01]
+
+TASK [cilium : Apply cilium-spire namespace] ****************************************************************************************************************
+changed: [master01]
+
+TASK [cilium : Install or upgrade Cilium from Artifactory] **************************************************************************************************
+fatal: [master01]: FAILED! => {"changed": true, "cmd": ["/usr/bin/helm", "upgrade", "--install", "cilium", "helm-virtual/cilium", "--namespace", "kube-system", "--create-namespace", "--values", "/var/tmp/cilium/cilium-values.yaml", "--wait", "--timeout", "10m"], "delta": "0:10:02.627294", "end": "2026-09-16 04:23:43.829273", "msg": "non-zero return code", "rc": 1, "start": "2026-09-16 04:13:41.201979", "stderr": "Error: context deadline exceeded", "stderr_lines": ["Error: context deadline exceeded"], "stdout": "Release \"cilium\" does not exist. Installing it now.", "stdout_lines": ["Release \"cilium\" does not exist. Installing it now."]}
+
+PLAY RECAP ****************************************************************************************************************************************************************************************************************************************
+master01                   : ok=25   changed=3    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
+
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'KUBECONFIG=../.kube/config  /usr/bin/helm list -A'
+master01 | FAILED | rc=1 >>
+Error: Kubernetes cluster unreachable: Get "http://localhost:8080/version": dial tcp [::1]:8080: connect: connection refusednon-zero return code
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Yes — that task can legitimately take several minutes because your Helm command includes:
 
 ```yaml
