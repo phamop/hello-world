@@ -1,3 +1,359 @@
+cat > roles/cilium/tasks/main.yml <<'EOF'
+---
+# ============================================================
+# PRE-FLIGHT VALIDATION
+# ============================================================
+
+- name: Validate Artifactory credentials
+  ansible.builtin.assert:
+    that:
+      - artifactory_user is defined
+      - artifactory_password is defined
+      - artifactory_user | length > 0
+      - artifactory_password | length > 0
+    fail_msg: >
+      ARTIFACTORY_USERNAME and/or ARTIFACTORY_PASSWORD
+      are not set in the environment.
+    success_msg: "Artifactory credentials are available."
+  no_log: true
+
+- name: Verify RKE2 kubeconfig exists
+  ansible.builtin.stat:
+    path: "{{ cilium_kubeconfig }}"
+  register: cilium_kubeconfig_stat
+
+- name: Fail if RKE2 kubeconfig does not exist
+  ansible.builtin.assert:
+    that:
+      - cilium_kubeconfig_stat.stat.exists
+      - cilium_kubeconfig_stat.stat.isreg
+    fail_msg: >
+      RKE2 kubeconfig was not found at {{ cilium_kubeconfig }}.
+
+- name: Verify kubectl binary exists
+  ansible.builtin.stat:
+    path: "{{ cilium_kubectl }}"
+  register: cilium_kubectl_stat
+
+- name: Fail if kubectl is missing
+  ansible.builtin.assert:
+    that:
+      - cilium_kubectl_stat.stat.exists
+      - cilium_kubectl_stat.stat.executable
+    fail_msg: >
+      kubectl was not found or is not executable at {{ cilium_kubectl }}.
+
+- name: Verify Helm is installed on RKE2 master
+  ansible.builtin.command:
+    cmd: helm version --short
+  register: helm_version
+  changed_when: false
+  check_mode: false
+
+- name: Show Helm version
+  ansible.builtin.debug:
+    var: helm_version.stdout
+
+- name: Verify kubectl can reach the cluster
+  ansible.builtin.command:
+    cmd: "{{ cilium_kubectl }} cluster-info"
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: cluster_info
+  changed_when: false
+  check_mode: false
+
+- name: Show Kubernetes cluster connectivity
+  ansible.builtin.debug:
+    var: cluster_info.stdout_lines
+
+# ============================================================
+# COPY CILIUM FILES TO MASTER01
+# ============================================================
+
+- name: Create Cilium working directory
+  ansible.builtin.file:
+    path: "{{ cilium_work_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create Cilium CRD directory
+  ansible.builtin.file:
+    path: "{{ cilium_crds_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Copy Cilium values file to RKE2 master
+  ansible.builtin.copy:
+    src: cilium-values.yaml
+    dest: "{{ cilium_values_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Copy Gateway API CRDs to RKE2 master
+  ansible.builtin.copy:
+    src: "crds/"
+    dest: "{{ cilium_crds_path }}/"
+    owner: root
+    group: root
+    mode: "0644"
+
+# ============================================================
+# VERIFY COPIED FILES
+# ============================================================
+
+- name: Verify Cilium values file exists
+  ansible.builtin.stat:
+    path: "{{ cilium_values_file }}"
+  register: cilium_values_stat
+
+- name: Fail if Cilium values file is missing
+  ansible.builtin.assert:
+    that:
+      - cilium_values_stat.stat.exists
+      - cilium_values_stat.stat.size > 0
+    fail_msg: >
+      Cilium values file is missing or empty:
+      {{ cilium_values_file }}
+
+- name: Find copied Gateway API CRDs
+  ansible.builtin.find:
+    paths: "{{ cilium_crds_path }}"
+    patterns: "*.yaml"
+    file_type: file
+  register: cilium_crd_files
+
+- name: Verify Gateway API CRDs were copied
+  ansible.builtin.assert:
+    that:
+      - cilium_crd_files.matched > 0
+    fail_msg: >
+      No Gateway API CRD files were found in
+      {{ cilium_crds_path }}.
+
+# ============================================================
+# INSTALL GATEWAY API CRDs
+# ============================================================
+
+- name: Install Cilium Gateway API CRDs
+  ansible.builtin.command:
+    cmd: >
+      {{ cilium_kubectl }}
+      apply
+      -f {{ cilium_crds_path }}
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: crd_apply
+  changed_when: >
+    'created' in crd_apply.stdout or
+    'configured' in crd_apply.stdout
+  when: not ansible_check_mode
+
+- name: Show Gateway API CRD result
+  ansible.builtin.debug:
+    var: crd_apply.stdout_lines
+  when:
+    - crd_apply is defined
+    - not crd_apply.skipped | default(false)
+
+# ============================================================
+# CONFIGURE HELM REPOSITORY
+# ============================================================
+
+- name: Add Artifactory Helm repo
+  ansible.builtin.command:
+    cmd: >
+      helm repo add helm-virtual
+      {{ artifactory_helm_virtual_repo }}
+      --username {{ artifactory_user }}
+      --password {{ artifactory_password }}
+      --force-update
+  register: helm_repo_add
+  no_log: true
+  when: not ansible_check_mode
+
+- name: Update Helm repositories
+  ansible.builtin.command:
+    cmd: helm repo update
+  register: helm_repo_update
+  changed_when: false
+  when: not ansible_check_mode
+
+# ============================================================
+# VERIFY CILIUM CHART EXISTS
+# ============================================================
+
+- name: Verify Cilium chart is available from Artifactory
+  ansible.builtin.command:
+    cmd: >
+      helm show chart
+      {{ cilium_chart_name }}
+  register: cilium_chart_check
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Show Cilium chart information
+  ansible.builtin.debug:
+    var: cilium_chart_check.stdout_lines
+  when:
+    - cilium_chart_check is defined
+    - not cilium_chart_check.skipped | default(false)
+
+# ============================================================
+# CREATE SPIRE NAMESPACE
+# ============================================================
+
+- name: Generate cilium-spire namespace manifest
+  ansible.builtin.command:
+    cmd: >
+      {{ cilium_kubectl }}
+      create namespace cilium-spire
+      --dry-run=client
+      -o yaml
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: cilium_spire_namespace_manifest
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Apply cilium-spire namespace
+  ansible.builtin.command:
+    cmd: "{{ cilium_kubectl }} apply -f -"
+    stdin: "{{ cilium_spire_namespace_manifest.stdout }}"
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: cilium_spire_namespace_apply
+  changed_when: >
+    'created' in cilium_spire_namespace_apply.stdout or
+    'configured' in cilium_spire_namespace_apply.stdout
+  when: not ansible_check_mode
+
+# ============================================================
+# INSTALL / UPGRADE CILIUM
+# ============================================================
+
+- name: Install or upgrade Cilium from Artifactory
+  ansible.builtin.command:
+    cmd: >
+      helm upgrade --install
+      {{ cilium_release_name }}
+      {{ cilium_chart_name }}
+      --namespace {{ cilium_namespace }}
+      --create-namespace
+      --values {{ cilium_values_file }}
+      --wait
+      --timeout 10m
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: cilium_helm_apply
+  when: not ansible_check_mode
+
+- name: Show Cilium Helm output
+  ansible.builtin.debug:
+    var: cilium_helm_apply.stdout_lines
+  when:
+    - cilium_helm_apply is defined
+    - not cilium_helm_apply.skipped | default(false)
+
+# ============================================================
+# POST-INSTALL VALIDATION
+# ============================================================
+
+- name: Wait for Cilium DaemonSet rollout
+  ansible.builtin.command:
+    cmd: >
+      {{ cilium_kubectl }}
+      rollout status
+      daemonset/cilium
+      -n {{ cilium_namespace }}
+      --timeout=600s
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: cilium_rollout
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Wait for Cilium operator rollout
+  ansible.builtin.command:
+    cmd: >
+      {{ cilium_kubectl }}
+      rollout status
+      deployment/cilium-operator
+      -n {{ cilium_namespace }}
+      --timeout=600s
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: cilium_operator_rollout
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Wait for control-plane nodes to become Ready
+  ansible.builtin.command:
+    cmd: >
+      {{ cilium_kubectl }}
+      wait
+      --for=condition=Ready
+      node/{{ item }}
+      --timeout=600s
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  loop: "{{ groups['masters'] }}"
+  register: cilium_node_ready
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Display cluster nodes
+  ansible.builtin.command:
+    cmd: "{{ cilium_kubectl }} get nodes -o wide"
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: cilium_nodes
+  changed_when: false
+  check_mode: false
+
+- name: Show cluster node status
+  ansible.builtin.debug:
+    var: cilium_nodes.stdout_lines
+
+- name: Display Cilium pods
+  ansible.builtin.command:
+    cmd: >
+      {{ cilium_kubectl }}
+      get pods
+      -n {{ cilium_namespace }}
+      -o wide
+      -l k8s-app=cilium
+  environment:
+    KUBECONFIG: "{{ cilium_kubeconfig }}"
+  register: cilium_pods
+  changed_when: false
+  check_mode: false
+
+- name: Show Cilium pods
+  ansible.builtin.debug:
+    var: cilium_pods.stdout_lines
+EOF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Below is a cleaner version that follows the logic we discussed: run Cilium from `master01`, use the existing RKE2 kubeconfig there, copy controller-side files to `master01`, validate Artifactory credentials, make check mode useful, and keep the real install idempotent enough for repeated runs.
 
 I would update these files.
