@@ -1,23 +1,67 @@
-TASK [cilium : Generate cilium-spire namespace manifest] ****************************************************************************************************
-ok: [master01]
+ ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a 'KUBECONFIG=/etc/rancher/rke2/rke2.yaml /usr/bin/helm list -A'
+master01 | CHANGED | rc=0 >>
+NAME                            NAMESPACE       REVISION        UPDATED                                         STATUS          CHART                                                                                              APP VERSION
+cilium                          kube-system     1               2026-09-16 04:13:42.292027829 +0200 CEST        failed          cilium-1.20.2                                                                                      1.20.2
+rke2-coredns                    kube-system     1               2026-09-15 22:39:11.376786307 +0000 UTC         deployed        rke2-coredns-1.45.205                                                                              1.13.1
+rke2-ingress-nginx              kube-system     1               2026-09-16 02:14:23.144102843 +0000 UTC         deployed        rke2-ingress-nginx-4.14.501                                                                        1.14.5
+rke2-metrics-server             kube-system     1               2026-09-16 02:14:23.558135422 +0000 UTC         deployed        rke2-metrics-server-3.13.007                                                                       0.8.0
+rke2-runtimeclasses             kube-system     1               2026-09-16 02:14:23.006735309 +0000 UTC         deployed        rke2-runtimeclasses-0.1.000                                                                        0.1.0
+rke2-snapshot-controller        kube-system     1               2026-09-16 02:14:23.989546132 +0000 UTC         deployed        rke2-snapshot-controller-4.2.                                                              002     v8.4.0
+rke2-snapshot-controller-crd    kube-system     1               2026-09-16 02:14:23.019108949 +0000 UTC         deployed        rke2-snapshot-controller-crd-                                                              4.2.002 v8.4.0
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a 'KUBECONFIG=/etc/rancher/rke2/rke2.yaml /                                                              usr/bin/helm status cilium -kube-system'
+master01 | FAILED | rc=1 >>
+Error: unknown shorthand flag: 'k' in -kube-systemnon-zero return code
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a 'KUBECONFIG=/etc/rancher/rke2/rke2.yaml /                                                              usr/bin/helm status cilium -n kube-system'
+master01 | CHANGED | rc=0 >>
+NAME: cilium
+LAST DEPLOYED: Wed Sep 16 04:13:42 2026
+NAMESPACE: kube-system
+STATUS: failed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+You have successfully installed Cilium with Hubble Relay and Hubble UI.
 
-TASK [cilium : Apply cilium-spire namespace] ****************************************************************************************************************
-changed: [master01]
+WARNINGS:
+- WARNING: TLS is not enabled for the Hubble Relay server (hubble.relay.tls.server.enabled=false).
+  This means Hubble Relay communications may not be encrypted. For more information about the security
+  implications and suggested controls, please see: https://docs.cilium.io/en/stable/security/threat-model/#hubble-data-attacker
 
-TASK [cilium : Install or upgrade Cilium from Artifactory] **************************************************************************************************
-fatal: [master01]: FAILED! => {"changed": true, "cmd": ["/usr/bin/helm", "upgrade", "--install", "cilium", "helm-virtual/cilium", "--namespace", "kube-system", "--create-namespace", "--values", "/var/tmp/cilium/cilium-values.yaml", "--wait", "--timeout", "10m"], "delta": "0:10:02.627294", "end": "2026-09-16 04:23:43.829273", "msg": "non-zero return code", "rc": 1, "start": "2026-09-16 04:13:41.201979", "stderr": "Error: context deadline exceeded", "stderr_lines": ["Error: context deadline exceeded"], "stdout": "Release \"cilium\" does not exist. Installing it now.", "stdout_lines": ["Release \"cilium\" does not exist. Installing it now."]}
+Your release version is 1.20.2.
 
-PLAY RECAP ****************************************************************************************************************************************************************************************************************************************
-master01                   : ok=25   changed=3    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0
-
+For any further help, visit https://docs.cilium.io/en/v1.20/gettinghelp
 ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
   -i inventory/dev/hosts.ini \
   -b \
   -m shell \
-  -a 'KUBECONFIG=../.kube/config  /usr/bin/helm list -A'
-master01 | FAILED | rc=1 >>
-Error: Kubernetes cluster unreachable: Get "http://localhost:8080/version": dial tcp [::1]:8080: connect: connection refusednon-zero return code
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get pods -n kube-system -l k8s-app=cilium'
+master01 | CHANGED | rc=0 >>
+NAME           READY   STATUS    RESTARTS   AGE
+cilium-6pwpp   1/1     Running   0          15m
+cilium-fxrdf   1/1     Running   0          15m
+cilium-p2hfw   1/1     Running   0          15m
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -b \
+  -m shell \
+  -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
+master01 | CHANGED | rc=0 >>
+NAME       STATUS   ROLES                AGE     VERSION          INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                            KERNEL-VERSION                                                                          CONTAINER-RUNTIME
+master01   Ready    control-plane,etcd   3h51m   v1.35.3+rke2r1   10.174.161.22   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default                                                                 containerd://2.2.2-k3s1
+master02   Ready    control-plane,etcd   3h10m   v1.35.3+rke2r1   10.174.161.23   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default                                                                 containerd://2.2.2-k3s1
+master03   Ready    control-plane,etcd   3h10m   v1.35.3+rke2r1   10.174.161.24   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default                                                                 containerd://2.2.2-k3s1
+ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ ansible master01   -i inventory/dev/hosts.ini   -b   -m shell   -a '/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml get nodes -o wide'
+master01 | CHANGED | rc=0 >>
+NAME       STATUS   ROLES                AGE     VERSION          INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                            KERNEL-VERSION            CONTAINER-RUNTIME
+master01   Ready    control-plane,etcd   3h51m   v1.35.3+rke2r1   10.174.161.22   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
+master02   Ready    control-plane,etcd   3h10m   v1.35.3+rke2r1   10.174.161.23   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
+master03   Ready    control-plane,etcd   3h10m   v1.35.3+rke2r1   10.174.161.24   <none>        SUSE Linux Enterprise Server 16.0   6.12.0-160000.6-default   containerd://2.2.2-k3s1
 ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
+
 
 
 
