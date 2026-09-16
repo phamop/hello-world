@@ -1,26 +1,7 @@
-ls  -ltr roles/cilium/files/
-total 12
-drwxr-xr-x 2 ooridota ooridota 4096 Sep 15 22:32 crds
--rw-r--r-- 1 ooridota ooridota 5161 Sep 15 22:32 cilium-values.yaml
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$ cd roles/cilium/
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd/roles/cilium$ tree
-.
-├── defaults
-│   └── main.yml
-├── files
-│   ├── cilium-values.yaml
-│   └── crds
-│       ├── gateway.networking.k8s.io_gatewayclasses.yaml
-│       ├── gateway.networking.k8s.io_gateways.yaml
-│       ├── gateway.networking.k8s.io_grpcroutes.yaml
-│       ├── gateway.networking.k8s.io_httproutes.yaml
-│       ├── gateway.networking.k8s.io_referencegrants.yaml
-│       └── gateway.networking.k8s.io_tlsroutes.yaml
-└── tasks
-    ├── main-20260916-011055.bak
-    └── main.yml
-
-5 directories, 10 files
+ansible master01 \
+  -i inventory/dev/hosts.ini \
+  -m debug \
+  -a 'msg=work_dir={{ cilium_work_dir }}, values={{ cilium_values_file }}, crds={{ cilium_crds_path }}'
 
 
 
