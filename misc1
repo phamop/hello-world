@@ -1,22 +1,20 @@
----
-ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
-ansible_password: "{{ lookup('env', 'ANSIBLE_PASSWORD') }}"
+#!/usr/bin/env bash
 
-ansible_become: true
-ansible_become_method: sudo
-ansible_become_password: "{{ lookup('env', 'ANSIBLE_BECOME_PASSWORD') }}"
+set -e
 
-ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+echo "=== Artifactory Environment Setup ==="
 
-environment_name: "non-production"
-ansible_python_interpreter: "/usr/bin/python3"
+read -rp "ARTIFACTORY_USERNAME: " ARTIFACTORY_USERNAME
+read -rsp "ARTIFACTORY_PASSWORD: " ARTIFACTORY_PASSWORD
+echo
 
-# Nexus / Artifactory credentials
-artifactory_username: "{{ lookup('env', 'ARTIFACTORY_USERNAME') }}"
-artifactory_password: "{{ lookup('env', 'ARTIFACTORY_PASSWORD') }}"
+export ARTIFACTORY_USERNAME
+export ARTIFACTORY_PASSWORD
 
-# Optional base URLs
-artifactory_url: "{{ lookup('env', 'ARTIFACTORY_URL') | default('https://nexus.phamnet.com', true) }}"
+echo
+echo "Environment variables loaded:"
+echo "ARTIFACTORY_USERNAME=${ARTIFACTORY_USERNAME}"
+echo "ARTIFACTORY_PASSWORD=********"
 
 
 
