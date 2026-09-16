@@ -1,37 +1,48 @@
-ansible-playbook -i inventory/dev/hosts.ini  playbooks/deploy-cilium.yml   --check --diff
+ cat  roles/cilium/tasks/main.yml
+---
+- name: Verify Helm is installed on Ansible controller
+  command: helm version --short
+  register: helm_ver
+  changed_when: false
 
-PLAY [Install or upgrade Cilium on RKE2 cluster] *********************************************************************************************************************************************************************
+- name: Verify kubectl can reach the cluster
+  command: kubectl cluster-info
+  register: cluster_info
+  changed_when: false
 
-TASK [cilium : Verify Helm is installed on Ansible controller] *******************************************************************************************************************************************************
-skipping: [master01]
+- name: Install Cilium CRDs
+  command: kubectl apply -f {{ cilium_crds_path }}
+  register: crd_apply
+  changed_when: "'created' in crd_apply.stdout or 'configured' in crd_apply.stdout"
 
-TASK [cilium : Verify kubectl can reach the cluster] *****************************************************************************************************************************************************************
-skipping: [master01]
+- name: Add Artifactory Helm repo (helm-virtual)
+  command: >
+    helm repo add helm-virtual {{ artifactory_helm_virtual_repo }}
+    --username {{ artifactory_user }}
+    --password {{ artifactory_password }}
+    --force-update
 
-TASK [cilium : Install Cilium CRDs] **********************************************************************************************************************************************************************************
-skipping: [master01]
+- name: Update Helm repos
+  command: helm repo update
 
-TASK [cilium : Add Artifactory Helm repo (helm-virtual)] *************************************************************************************************************************************************************
-skipping: [master01]
+- name: Create cilium-spire namespace
+  command: kubectl create namespace cilium-spire
+  register: spire_ns
+  failed_when: spire_ns.rc != 0 and 'already exists' not in spire_ns.stderr
+  changed_when: spire_ns.rc == 0
 
-TASK [cilium : Update Helm repos] ************************************************************************************************************************************************************************************
-skipping: [master01]
+- name: Install/Upgrade Cilium via Helm (from Artifactory helm-virtual)
+  command: >
+    helm upgrade --install {{ cilium_release_name }} helm-virtual/cilium
+    -f {{ cilium_values_file }}
+    --create-namespace
+    -n {{ cilium_namespace }}
+  register: cilium_helm_apply
 
-TASK [cilium : Create cilium-spire namespace] ************************************************************************************************************************************************************************
-skipping: [master01]
+- name: Show Cilium helm output
+  debug:
+    var: cilium_helm_apply.stdout_lines
 
-TASK [cilium : Install/Upgrade Cilium via Helm (from Artifactory helm-virtual)] **************************************************************************************************************************************
-skipping: [master01]
-
-TASK [cilium : Show Cilium helm output] ******************************************************************************************************************************************************************************
-ok: [master01] => {
-    "cilium_helm_apply.stdout_lines": []
-}
-
-PLAY RECAP ***********************************************************************************************************************************************************************************************************
-master01                   : ok=1    changed=0    unreachable=0    failed=0    skipped=7    rescued=0    ignored=0
-
-ooridota@ca-gat-dc1-nosd-stg-vm-jmp-01:~/nonprd$
 
 
 
