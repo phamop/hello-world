@@ -1,6 +1,14 @@
 sed -i \
   's/cmd: helm /cmd: "{{ helm_binary }}" /g; s/^      helm /      {{ helm_binary }} /g' \
-  roles/cilium/tasks/main.yml
+  roles/cilium/tasks/main.yml grep -nE '\bhelm\b|helm_binary' roles/cilium/tasks/main.yml
+47:    cmd: "{{ helm_binary }}" version --short
+170:      {{ helm_binary }} repo add helm-virtual
+181:    cmd: "{{ helm_binary }}" repo update
+193:      {{ helm_binary }} show chart
+242:      {{ helm_binary }} upgrade --install
+
+
+
 
 
 
